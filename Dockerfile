@@ -1,3 +1,4 @@
+# Dockerfile v1.1 - Fixed Prisma Alpine compatibility
 # Use Node.js 20-alpine as the base image for the build stage
 FROM node:20-alpine AS base
 # Prisma needs openssl and libc6-compat on Alpine
@@ -21,7 +22,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma Client (setting dummy DATABASE_URL to avoid connection attempts)
-ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
+ENV DATABASE_URL="postgres://postgres:5c3e44d804fc344ac3b7@n8n_postgres:5432/n8n?sslmode=disable"
 RUN npx prisma generate
 
 RUN npm run build
