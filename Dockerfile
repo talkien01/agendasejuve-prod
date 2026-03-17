@@ -1,28 +1,22 @@
-# Dockerfile v1.1 - Fixed Prisma Alpine compatibility
-# Use Node.js 20-alpine as the base image for the build stage
-FROM node:20-alpine AS base
-# Prisma needs openssl and libc6-compat on Alpine
-RUN apk add --no-cache libc6-compat openssl
+# Use Node.js 20-slim (Debian) as the base image for better Prisma compatibility
+FROM node:20-slim AS base
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Install dependencies only when needed
 FROM base AS deps
-# Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma Client (setting dummy DATABASE_URL to avoid connection attempts)
-ENV DATABASE_URL="postgres://postgres:5c3e44d804fc344ac3b7@n8n_postgres:5432/n8n?sslmode=disable"
+# Generate Prisma Client 
+# Dummy URL to bypass validation during generation time
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
 RUN npx prisma generate
 
 RUN npm run build
@@ -33,8 +27,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs || true
+RUN adduser --system --uid 1001 nextjs || true
 
 COPY --from=builder /app/public ./public
 
@@ -43,7 +37,6 @@ RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
@@ -54,6 +47,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 CMD ["node", "server.js"]
