@@ -1,7 +1,7 @@
 # Use Node.js 20-alpine as the base image for the build stage
 FROM node:20-alpine AS base
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+# Prisma needs openssl and libc6-compat on Alpine
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 # Install dependencies only when needed
@@ -13,10 +13,15 @@ RUN npm ci
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma Client
+# Generate Prisma Client (setting dummy DATABASE_URL to avoid connection attempts)
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
 RUN npx prisma generate
 
 RUN npm run build
