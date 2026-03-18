@@ -1,0 +1,11 @@
+﻿
+> agendapro-clone@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.7 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 1201.0ms
+  Running TypeScript ...
+  Collecting page data using 19 workers ...
