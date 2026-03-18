@@ -6,9 +6,9 @@ import Header from "@/components/shared/Header";
 
 export default function MainLayout({ children }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const isPublicPage = pathname === "/login" || pathname?.startsWith("/reservar");
 
-  if (isLoginPage) {
+  if (isPublicPage) {
     return <main>{children}</main>;
   }
 
