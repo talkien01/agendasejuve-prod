@@ -14,21 +14,19 @@ export default function MainLayout({ children }) {
 
   return (
     <div className="app-container">
+      <Header />
       <Sidebar />
-      <div className="main-wrapper">
-        <Header />
-        <main className="main-content">
-          {children}
-        </main>
-      </div>
+      <main className="main-content">
+        {children}
+      </main>
 
       <style jsx global>{`
-        .main-wrapper {
-          flex: 1;
+        .main-content {
           margin-left: var(--sidebar-width);
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
+          margin-top: var(--header-height);
+          padding: 24px;
+          min-height: calc(100vh - var(--header-height));
+          width: calc(100% - var(--sidebar-width));
         }
       `}</style>
     </div>
