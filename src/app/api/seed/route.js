@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 import prisma from '@/lib/db';
 
 export async function GET() {
@@ -63,7 +64,7 @@ export async function GET() {
 
     // 4. Create Default User
     const adminEmail = 'admin@sejuve.com';
-    const adminPasswordHash = '$2b$10$gfz0LAhkOykSj0y6pNvJyuL4XjGGfST.IJb5COddxb9TeeqibQYeLa'; // admin123
+    const adminPasswordHash = await bcrypt.hash('admin123', 10);
     
     await prisma.user.upsert({
       where: { email: adminEmail },
