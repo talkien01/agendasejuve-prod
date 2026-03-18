@@ -66,6 +66,24 @@ async function main() {
     create: { key: 'app_name', value: 'SEJUVE Citas' },
   });
 
+  // 4. Create Default User
+  const adminEmail = 'admin@sejuve.com';
+  const adminPasswordHash = '$2b$10$gfz0LAhkOykSj0y6pNvJyuL4XjGGfST.IJb5COddxb9TeeqibQYeLa'; // admin123
+  
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      password: adminPasswordHash,
+      name: 'Jose Luis',
+    },
+    create: {
+      email: adminEmail,
+      password: adminPasswordHash,
+      name: 'Jose Luis',
+      role: 'ADMIN',
+    },
+  });
+
   console.log('Seeding finished.');
 }
 

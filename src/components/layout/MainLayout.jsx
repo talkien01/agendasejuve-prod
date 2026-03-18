@@ -1,9 +1,17 @@
 'use client';
 
+import { usePathname } from "next/navigation";
 import Sidebar from "@/components/shared/Sidebar";
 import Header from "@/components/shared/Header";
 
 export default function MainLayout({ children }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
+
+  if (isLoginPage) {
+    return <main>{children}</main>;
+  }
+
   return (
     <div className="app-container">
       <Sidebar />

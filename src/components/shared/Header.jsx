@@ -1,8 +1,48 @@
 'use client';
 
-import { Search, Bell, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Search, Bell, LogOut, User as UserIcon } from 'lucide-react';
 
 export default function Header() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        } else {
+          router.push('/login');
+        }
+      } catch (err) {
+        console.error('Failed to fetch user:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUser();
+  }, [router]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+      router.refresh();
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
+
+  const getInitials = (name) => {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   return (
     <header className="header">
       <div className="header-left">
@@ -16,10 +56,18 @@ export default function Header() {
         <button className="icon-btn">
           <Bell size={20} />
         </button>
-        <div className="user-profile">
-          <div className="avatar">JL</div>
-          <span className="user-name">Jose Luis</span>
-        </div>
+        
+        {user && (
+          <div className="user-profile">
+            <div className="avatar">{getInitials(user.name)}</div>
+            <div className="user-info">
+              <span className="user-name">{user.name}</span>
+            </div>
+            <button className="logout-btn" onClick={handleLogout} title="Cerrar sesión">
+              <LogOut size={16} />
+            </button>
+          </div>
+        )}
       </div>
 
       <style jsx>{`
@@ -62,7 +110,7 @@ export default function Header() {
         .user-profile {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
           border-left: 1px solid var(--border-color);
           padding-left: 16px;
           margin-left: 8px;
@@ -81,10 +129,27 @@ export default function Header() {
           font-weight: 600;
         }
 
+        .user-info {
+          display: flex;
+          flex-direction: column;
+        }
+
         .user-name {
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--text-main);
+        }
+
+        .logout-btn {
+          margin-left: 8px;
+          color: var(--text-secondary);
+          transition: color 0.2s;
+          display: flex;
+          align-items: center;
+        }
+
+        .logout-btn:hover {
+          color: #d32f2f;
         }
       `}</style>
     </header>
