@@ -1,13 +1,13 @@
-"use client";
-
 import { useState, useEffect } from 'react';
-import { MapPin, Phone, MessageCircle, Clock, ChevronRight, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, MessageCircle, Clock, ChevronRight, ArrowLeft, Calendar as CalendarIcon, User, Mail } from 'lucide-react';
 import Link from 'next/link';
+import { format, addDays, startOfToday, isSameDay } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function ReservarPage() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ locales: [], services: [], professionals: [] });
-  const [step, setStep] = useState(1); // 1: Select Service, 2: Select Professional, 3: Select Date/Time, 4: Confirm
+  const [step, setStep] = useState(1); // 1: Select Service, 2: Select Professional, 3: Select Date/Time, 4: Confirm/UserData
   const [booking, setBooking] = useState({
     localId: null,
     serviceId: null,
@@ -15,6 +15,15 @@ export default function ReservarPage() {
     date: null,
     time: null,
   });
+
+  // Step 3 state
+  const today = startOfToday();
+  const [selectedDate, setSelectedDate] = useState(today);
+  const availableDates = Array.from({ length: 14 }).map((_, i) => addDays(today, i));
+  const availableTimes = ['09:00', '10:00', '11:00', '12:00', '16:00', '17:00', '18:00'];
+
+  // Step 4 state
+  const [userData, setUserData] = useState({ name: '', email: '', phone: '' });
 
   useEffect(() => {
     async function fetchData() {
@@ -186,12 +195,102 @@ export default function ReservarPage() {
                 <h3>Selecciona fecha y hora</h3>
                 <p>Servicio: {selectedService?.name}</p>
               </div>
-              <div className="placeholder-calendar">
-                <p>El calendario de disponibilidad estará disponible en la siguiente actualización.</p>
-                <button className="agendar-btn" style={{marginTop: '20px'}} onClick={() => setStep(1)}>
-                  Reiniciar
-                </button>
+              
+              <div className="date-picker-container">
+                <div className="month-label">
+                  <CalendarIcon size={16} /> {format(selectedDate, 'MMMM yyyy', { locale: es }).toUpperCase()}
+                </div>
+                <div className="days-scroll">
+                  {availableDates.map(date => {
+                    const isSelected = isSameDay(date, selectedDate);
+                    return (
+                      <div 
+                        key={date.toString()} 
+                        className={`day-card ${isSelected ? 'selected' : ''}`}
+                        onClick={() => setSelectedDate(date)}
+                      >
+                        <span className="day-name">{format(date, 'eee', { locale: es }).substring(0, 3)}</span>
+                        <span className="day-number">{format(date, 'd')}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+
+              <div className="times-container">
+                <h4>Horarios disponibles</h4>
+                <div className="times-grid">
+                  {availableTimes.map(time => (
+                    <button 
+                      key={time} 
+                      className="time-btn"
+                      onClick={() => {
+                        setBooking(prev => ({ ...prev, date: selectedDate, time }));
+                        setStep(4);
+                      }}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="confirmation-section">
+              <div className="section-header">
+                <h3>Confirma tu reservación</h3>
+                <p>Ingresa tus datos para finalizar</p>
+              </div>
+              
+              <div className="booking-summary">
+                <div className="summary-item">
+                  <strong>Servicio:</strong> {selectedService?.name}
+                </div>
+                <div className="summary-item">
+                  <strong>Fecha:</strong> {format(booking.date, "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                </div>
+                <div className="summary-item">
+                  <strong>Hora:</strong> {booking.time}
+                </div>
+                <div className="summary-item">
+                  <strong>Costo:</strong> {selectedService?.price === 0 ? 'Gratis' : `$${selectedService?.price}`}
+                </div>
+              </div>
+
+              <form className="user-form" onSubmit={(e) => {
+                e.preventDefault();
+                alert('¡Reservación creada con éxito! (Esta es una prueba, los datos no se guardaron)');
+                setStep(1);
+              }}>
+                <div className="form-group">
+                  <label>Nombre completo</label>
+                  <div className="input-with-icon">
+                    <User size={18} className="input-icon" />
+                    <input type="text" placeholder="Ej. Juan Pérez" required value={userData.name} onChange={e => setUserData({...userData, name: e.target.value})} />
+                  </div>
+                </div>
+                <div className="form-group flex-row">
+                  <div className="flex-1">
+                    <label>Correo electrónico</label>
+                    <div className="input-with-icon">
+                      <Mail size={18} className="input-icon" />
+                      <input type="email" placeholder="tucorreo@ejemplo.com" required value={userData.email} onChange={e => setUserData({...userData, email: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <label>Teléfono (WhatsApp)</label>
+                    <div className="input-with-icon">
+                      <Phone size={18} className="input-icon" />
+                      <input type="tel" placeholder="10 dígitos" required value={userData.phone} onChange={e => setUserData({...userData, phone: e.target.value})} />
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" className="agendar-btn full-width">
+                  Confirmar Reservación
+                </button>
+              </form>
             </div>
           )}
         </div>
@@ -467,13 +566,194 @@ export default function ReservarPage() {
           color: #666;
         }
 
-        .placeholder-calendar {
-          text-align: center;
-          padding: 40px;
-          background-color: #f9fafb;
-          border: 2px dashed #e5e7eb;
+        .date-picker-container {
+          margin-bottom: 32px;
+        }
+
+        .month-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 600;
+          color: #333;
+          margin-bottom: 16px;
+        }
+
+        .days-scroll {
+          display: flex;
+          gap: 12px;
+          overflow-x: auto;
+          padding-bottom: 8px;
+          scrollbar-width: thin;
+        }
+
+        .days-scroll::-webkit-scrollbar {
+          height: 6px;
+        }
+
+        .days-scroll::-webkit-scrollbar-thumb {
+          background-color: #ddd;
+          border-radius: 4px;
+        }
+
+        .day-card {
+          min-width: 64px;
+          height: 80px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          background: white;
+          border: 1px solid #eaeaea;
           border-radius: 12px;
-          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .day-card.selected {
+          background-color: #272c33;
+          color: white;
+          border-color: #272c33;
+        }
+
+        .day-card:hover:not(.selected) {
+          border-color: #ccc;
+        }
+
+        .day-name {
+          font-size: 12px;
+          text-transform: capitalize;
+          color: inherit;
+          opacity: 0.8;
+        }
+
+        .day-number {
+          font-size: 20px;
+          font-weight: bold;
+          color: inherit;
+        }
+
+        .times-container h4 {
+          font-size: 16px;
+          margin-bottom: 16px;
+          color: #333;
+        }
+
+        .times-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+          gap: 12px;
+        }
+
+        .time-btn {
+          background: white;
+          border: 1px solid #eaeaea;
+          border-radius: 8px;
+          padding: 12px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #333;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .time-btn:hover {
+          border-color: #272c33;
+          background-color: #fcfcfc;
+        }
+
+        .confirmation-section {
+          max-width: 500px;
+        }
+
+        .booking-summary {
+          background-color: #f9fafb;
+          border: 1px solid #eaeaea;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 24px;
+        }
+
+        .summary-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px dashed #e5e5e5;
+          font-size: 14px;
+          color: #444;
+        }
+
+        .summary-item:last-child {
+          border-bottom: none;
+        }
+
+        .form-group {
+          margin-bottom: 16px;
+        }
+
+        .form-group.flex-row {
+          display: flex;
+          gap: 16px;
+        }
+
+        .flex-1 {
+          flex: 1;
+        }
+
+        .form-group label {
+          display: block;
+          font-size: 13px;
+          font-weight: 500;
+          color: #555;
+          margin-bottom: 6px;
+        }
+
+        .input-with-icon {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .input-icon {
+          position: absolute;
+          left: 12px;
+          color: #9ca3af;
+        }
+
+        .input-with-icon input {
+          width: 100%;
+          padding: 12px 12px 12px 40px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 14px;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+
+        .input-with-icon input:focus {
+          border-color: #272c33;
+        }
+
+        .agendar-btn {
+          background-color: #272c33;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .agendar-btn:hover {
+          background-color: #1a1d22;
+        }
+
+        .full-width {
+          width: 100%;
+          margin-top: 16px;
         }
 
         @media (max-width: 900px) {
@@ -482,6 +762,10 @@ export default function ReservarPage() {
           }
           .services-grid {
             grid-template-columns: 1fr;
+          }
+          .form-group.flex-row {
+            flex-direction: column;
+            gap: 0;
           }
         }
       `}</style>
