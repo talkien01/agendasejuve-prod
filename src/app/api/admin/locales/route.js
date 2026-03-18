@@ -1,19 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-key-for-jwt-12345!');
+import { getSession } from '@/lib/auth';
 
 async function isAuthenticated(req) {
-  const cookieStore = cookies();
-  const token = cookieStore.get('token')?.value;
-
-  if (!token) return false;
-
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload; // Returns user info if valid
+    const session = await getSession();
+    return session ? session : false;
   } catch (error) {
     return false;
   }
