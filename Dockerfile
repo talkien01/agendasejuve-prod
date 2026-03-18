@@ -22,14 +22,21 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+ENV HOME=/tmp
+ENV NPM_CONFIG_CACHE=/tmp/.npm
 
 RUN addgroup --system --gid 1001 nodejs || true
 RUN adduser --system --uid 1001 nextjs || true
 
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src/lib ./src/lib
+COPY --from=builder /app/node_modules ./node_modules
 
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN mkdir -p .next /tmp/.npm
+RUN chown -R nextjs:nodejs /app /tmp/.npm
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
@@ -38,7 +45,4 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "node prisma/seed.js && node server.js"]
