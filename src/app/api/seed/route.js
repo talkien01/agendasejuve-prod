@@ -7,7 +7,7 @@ export async function GET() {
   try {
     console.log('Start seeding via API...');
 
-    // 0. Create Locales
+    console.log('0. Creating Locales...');
     const local = await prisma.local.upsert({
       where: { id: 'sede-centro' },
       update: {},
@@ -18,8 +18,9 @@ export async function GET() {
         phone: '524422242254',
       },
     });
+    console.log('Local created successfully:', local.id);
 
-    // 1. Create Services
+    console.log('1. Creating Services...');
     const services = [
       { id: 'ser-terapia-online', name: 'Terapia online', duration: 60, price: 0, category: 'General' },
       { id: 'ser-terapia-presencial', name: 'Terapia presencial', duration: 60, price: 0, category: 'General' },
@@ -33,6 +34,7 @@ export async function GET() {
         create: s,
       });
     }
+    console.log('Services created successfully.');
 
     // 2. Create Professionals
     const pros = [
