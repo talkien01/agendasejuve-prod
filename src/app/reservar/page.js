@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { MapPin, Phone, MessageCircle, Clock, ChevronRight, ArrowLeft, Calendar as CalendarIcon, User, Mail } from 'lucide-react';
 import Link from 'next/link';
