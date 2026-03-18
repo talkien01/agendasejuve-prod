@@ -1,23 +1,50 @@
-'use client';
-
-import { Calendar as CalendarIcon, Link2, ChevronDown, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar as CalendarIcon, Link2, ChevronDown } from 'lucide-react';
 
 export default function Sidebar() {
+  const [currentDate, setCurrentDate] = useState(new Date('2026-03-18T12:00:00Z'));
+  
+  useEffect(() => {
+    // Ensure we start with the current date based on user's timezone when hydrated
+    setCurrentDate(new Date());
+  }, []);
+
+  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year, month) => {
+    let day = new Date(year, month, 1).getDay();
+    // Convert Sunday (0) to 6, Monday (1) to 0, etc to make Monday the first day
+    return day === 0 ? 6 : day - 1;
+  };
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const daysInMonth = getDaysInMonth(year, month);
+  const firstDay = getFirstDayOfMonth(year, month);
+  const today = new Date().getDate();
+  const isCurrentMonth = new Date().getMonth() === month && new Date().getFullYear() === year;
+
+  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
   return (
     <aside className="sidebar">
       <div className="sidebar-section calendar-section">
         <div className="mini-calendar">
-          {/* Mock mini calendar for layout */}
           <div className="cal-header">
             <button>&lt;</button>
-            <span>Marzo 2026</span>
+            <span>{monthNames[month]} {year}</span>
             <button>&gt;</button>
           </div>
           <div className="cal-grid">
             <span className="cal-day-name">Lu</span><span className="cal-day-name">Ma</span><span className="cal-day-name">Mi</span><span className="cal-day-name">Ju</span><span className="cal-day-name">Vi</span><span className="cal-day-name">Sa</span><span className="cal-day-name">Do</span>
-            {Array.from({length: 31}).map((_, i) => (
-              <span key={i} className={`cal-day ${i === 17 ? 'active' : ''}`}>{i + 1}</span>
+            {/* Empty slots for days before the 1st */}
+            {Array.from({ length: firstDay }).map((_, i) => (
+              <span key={`empty-${i}`} className="cal-day empty"></span>
             ))}
+            {/* Actual days */}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+               const isActive = isCurrentMonth && (i + 1) === today;
+               return <span key={`day-${i}`} className={`cal-day ${isActive ? 'active' : ''}`}>{i + 1}</span>;
+            })}
           </div>
         </div>
       </div>

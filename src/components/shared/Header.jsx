@@ -42,28 +42,28 @@ export default function Header() {
     <header className="top-header">
       <div className="header-left">
         <Link href="/" className="logo-area">
-          <div className="logo-icon">S</div>
-          <span className="logo-text">SEJUVE</span>
+          <h1 className="logo-text">SEJUVE<span> Citas</span></h1>
         </Link>
-        <nav className="top-nav">
-          {navLinks.map((link) => (
-            <Link 
-              key={link.name} 
-              href={link.href} 
-              className={`nav-link ${pathname.startsWith(link.href) ? 'active' : ''}`}
-            >
-              {link.name}
-              {link.name === 'Ventas' || link.name === 'Pacientes' || link.name === 'Reportes' ? <ChevronDown size={14} className="ml-1" /> : null}
-            </Link>
-          ))}
-          <Link 
-            href="/settings" 
-            className={`nav-link ${pathname.startsWith('/settings') ? 'active' : ''}`}
-          >
-            Administración <ChevronDown size={14} className="ml-1" />
-          </Link>
-        </nav>
       </div>
+
+      <nav className="header-center top-nav">
+        {navLinks.map((link) => (
+          <Link 
+            key={link.name} 
+            href={link.href} 
+            className={`nav-link ${pathname.startsWith(link.href) ? 'active' : ''}`}
+          >
+            {link.name}
+            {link.name === 'Ventas' || link.name === 'Pacientes' || link.name === 'Reportes' ? <ChevronDown size={14} className="ml-1" /> : null}
+          </Link>
+        ))}
+        <Link 
+          href="/settings" 
+          className={`nav-link ${pathname.startsWith('/settings') ? 'active' : ''}`}
+        >
+          Administración <ChevronDown size={14} className="ml-1" />
+        </Link>
+      </nav>
       
       <div className="header-right">
         <button className="icon-btn search-btn">
@@ -92,7 +92,7 @@ export default function Header() {
       <style jsx>{`
         .top-header {
           height: var(--header-height);
-          background-color: #272c33; /* AgendaPro dark theme */
+          background-color: #272c33;
           color: white;
           display: flex;
           align-items: center;
@@ -108,34 +108,31 @@ export default function Header() {
         .header-left {
           display: flex;
           align-items: center;
-          height: 100%;
+          flex: 1; /* Take up space to help centering */
         }
 
         .logo-area {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-right: 30px;
           text-decoration: none;
           color: white;
         }
 
-        .logo-icon {
-          width: 24px;
-          height: 24px;
-          background: linear-gradient(135deg, #00bfff, #8a2be2);
-          border-radius: 4px;
+        .logo-text {
+          font-size: 20px;
+          font-weight: 700;
+          letter-spacing: -0.5px;
+          margin: 0;
+        }
+
+        .logo-text span {
+          color: var(--brand-primary);
+        }
+
+        .header-center {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: bold;
-          font-size: 14px;
-        }
-
-        .logo-text {
-          font-size: 18px;
-          font-weight: 700;
-          letter-spacing: -0.5px;
+          height: 100%;
+          flex: 2; /* Main focus area */
         }
 
         .top-nav {
@@ -173,7 +170,9 @@ export default function Header() {
         .header-right {
           display: flex;
           align-items: center;
+          justify-content: flex-end;
           gap: 16px;
+          flex: 1; /* Balance the left side */
         }
 
         .icon-btn {
