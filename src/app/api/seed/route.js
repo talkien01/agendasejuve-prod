@@ -7,11 +7,38 @@ export async function GET() {
   try {
     console.log('Start seeding via API...');
 
-    // 0. Create Professionals
+    // 0. Create Locales
+    const local = await prisma.local.upsert({
+      where: { id: 'sede-centro' },
+      update: {},
+      create: {
+        id: 'sede-centro',
+        name: 'Secretaría de la Juventud',
+        address: 'Blvd. Bernardo Quintana Arrioja, Arboledas, Santiago de Querétaro, Qro., México',
+        phone: '524422242254',
+      },
+    });
+
+    // 1. Create Services
+    const services = [
+      { id: 'ser-terapia-online', name: 'Terapia online', duration: 60, price: 0, category: 'General' },
+      { id: 'ser-terapia-presencial', name: 'Terapia presencial', duration: 60, price: 0, category: 'General' },
+      { id: 'ser-valoracion-inicial', name: 'Valoración Inicial', duration: 60, price: 0, category: 'General' },
+    ];
+
+    for (const s of services) {
+      await prisma.service.upsert({
+        where: { id: s.id },
+        update: s,
+        create: s,
+      });
+    }
+
+    // 2. Create Professionals
     const pros = [
-      { name: 'Dr. Jose Luis', specialty: 'Médico General' },
-      { name: 'Dra. Elena', specialty: 'Psicología' },
-      { name: 'Lic. Rodrigo', specialty: 'Nutrición' },
+      { name: 'Dr. Jose Luis', specialty: 'Médico General', localId: local.id },
+      { name: 'Dra. Elena', specialty: 'Psicología', localId: local.id },
+      { name: 'Lic. Rodrigo', specialty: 'Nutrición', localId: local.id },
     ];
 
     for (const pro of pros) {
@@ -22,13 +49,10 @@ export async function GET() {
       });
     }
 
-    // 1. Create Patients
+    // 3. Create Patients
     const patients = [
       { name: 'Juan Pérez', email: 'juan.perez@email.com', phone: '+52 5512345678', identifier: 'PERJ880101HXXXXX01', status: 'Activo' },
       { name: 'María García', email: 'm.garcia@email.com', phone: '+52 5598765432', identifier: 'GARM900505MXXXXX02', status: 'Inactivo' },
-      { name: 'Carlos Ruiz', email: 'c.ruiz@email.com', phone: '+52 5524681357', identifier: 'RUIC850202HXXXXX03', status: 'Activo' },
-      { name: 'Elena López', email: 'elena.l@email.com', phone: '+52 5536925814', identifier: 'LOPE920808MXXXXX04', status: 'Activo' },
-      { name: 'Ricardo Sánchez', email: 'r.sanchez@email.com', phone: '+52 5574185296', identifier: 'SANR801212HXXXXX05', status: 'Pendiente' },
     ];
 
     for (const p of patients) {
@@ -39,30 +63,27 @@ export async function GET() {
       });
     }
 
-    // 2. Create Resources
+    // 4. Create Resources
     const resources = [
-      { name: 'Auditorio Principal', type: 'Auditorio', location: 'Sede Centro', status: 'Activo', services: 'Conferencia, Taller' },
-      { name: 'Sala de Juntas A', type: 'Sala', location: 'Sede Centro', status: 'Activo', services: 'Reunión, Entrevista' },
-      { name: 'Cabina de Audio 1', type: 'Cabina', location: 'Sede Norte', status: 'Mantenimiento', services: 'Grabación' },
-      { name: 'Cabina de TV', type: 'Cabina', location: 'Sede Norte', status: 'Activo', services: 'Streaming, Grabación' },
+      { name: 'Auditorio Principal', type: 'Auditorio', localId: local.id, status: 'Activo', services: 'Conferencia, Taller' },
+      { name: 'Sala de Juntas A', type: 'Sala', localId: local.id, status: 'Activo', services: 'Reunión, Entrevista' },
     ];
 
     for (const r of resources) {
-      // Find if exists
       const existing = await prisma.resource.findFirst({ where: { name: r.name } });
       if (!existing) {
         await prisma.resource.create({ data: r });
       }
     }
 
-    // 3. Create Config
+    // 5. Create Config
     await prisma.config.upsert({
       where: { key: 'app_name' },
       update: { value: 'SEJUVE Citas' },
       create: { key: 'app_name', value: 'SEJUVE Citas' },
     });
 
-    // 4. Create Default User
+    // 6. Create Default User
     const adminEmail = 'admin@sejuve.com';
     const adminPasswordHash = await bcrypt.hash('admin123', 10);
     

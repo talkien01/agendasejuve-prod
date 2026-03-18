@@ -12,6 +12,19 @@ datasource db {
 
 
 
+model Local {
+  id           String         @id @default(cuid())
+  name         String
+  address      String?
+  phone        String?
+  status       String         @default("Activo")
+  professionals Professional[]
+  resources     Resource[]
+  appointments  Appointment[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
 model Patient {
   id           String        @id @default(cuid())
   createdAt    DateTime      @default(now())
@@ -30,7 +43,20 @@ model Professional {
   updatedAt    DateTime      @updatedAt
   name         String
   specialty    String?
+  local        Local?        @relation(fields: [localId], references: [id])
+  localId      String?
   appointments Appointment[]
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  name         String
+  duration     Int           // in minutes
+  price        Float?        @default(0)
+  category     String?
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Resource {
@@ -39,7 +65,8 @@ model Resource {
   updatedAt    DateTime      @updatedAt
   name         String
   type         String        // Auditorio, Sala, Cabina, etc.
-  location     String?
+  local        Local?        @relation(fields: [localId], references: [id])
+  localId      String?
   status       String        @default("Activo") // Activo, Mantenimiento
   services     String?       // Comma separated or JSON string
   appointments Appointment[]
@@ -64,6 +91,12 @@ model Appointment {
   
   resource    Resource? @relation(fields: [resourceId], references: [id])
   resourceId  String?
+
+  service     Service? @relation(fields: [serviceId], references: [id])
+  serviceId   String?
+
+  local       Local?   @relation(fields: [localId], references: [id])
+  localId     String?
 }
 
 model Config {

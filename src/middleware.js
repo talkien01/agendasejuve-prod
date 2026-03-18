@@ -10,7 +10,9 @@ export async function middleware(request) {
   // Paths that don't require authentication
   if (
     pathname.startsWith('/login') ||
+    pathname.startsWith('/reservar') ||
     pathname.startsWith('/api/auth/login') ||
+    pathname.startsWith('/api/booking-data') ||
     pathname.startsWith('/api/diag') ||
     pathname.startsWith('/api/seed') ||
     pathname.startsWith('/_next') ||
