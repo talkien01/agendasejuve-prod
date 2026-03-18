@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Phone, MessageCircle, Clock, ChevronRight, ArrowLeft, Calendar as CalendarIcon, User, Mail } from 'lucide-react';
 import Link from 'next/link';
-import { format, addDays, startOfToday, isSameDay } from 'date-fns';
+import { format, addDays, startOfToday, isSameDay, isWeekend } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function ReservarPage() {
@@ -21,8 +21,15 @@ export default function ReservarPage() {
   // Step 3 state
   const today = startOfToday();
   const [selectedDate, setSelectedDate] = useState(today);
-  const availableDates = Array.from({ length: 14 }).map((_, i) => addDays(today, i));
-  const availableTimes = ['09:00', '10:00', '11:00', '12:00', '16:00', '17:00', '18:00'];
+  
+  // Generate next 14 absolute days, filter out weekends, and take the first 10 working days
+  const availableDates = Array.from({ length: 21 }) // Generate enough buffer
+    .map((_, i) => addDays(today, i))
+    .filter(date => !isWeekend(date))
+    .slice(0, 14); // Keep next 14 working days
+
+  const availableTimes = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+
 
   // Step 4 state
   const [userData, setUserData] = useState({ name: '', email: '', phone: '' });
