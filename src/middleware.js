@@ -11,6 +11,8 @@ export async function middleware(request) {
   if (
     pathname.startsWith('/login') ||
     pathname.startsWith('/api/auth/login') ||
+    pathname.startsWith('/api/diag') ||
+    pathname.startsWith('/api/seed') ||
     pathname.startsWith('/_next') ||
     pathname.includes('/favicon.ico')
   ) {
