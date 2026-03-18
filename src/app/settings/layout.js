@@ -137,13 +137,13 @@ export default function SettingsLayout({ children }) {
         }
 
         .category-item:hover {
-          background: var(--bg-secondary);
-          color: var(--primary-color);
+          background: var(--bg-surface);
+          color: var(--brand-primary);
         }
 
         .category-item.active {
           background: rgba(0, 191, 255, 0.1);
-          color: var(--primary-color);
+          color: var(--brand-primary);
           font-weight: 600;
         }
 
@@ -159,7 +159,7 @@ export default function SettingsLayout({ children }) {
         .settings-section h2 {
           font-size: 20px;
           margin-bottom: 24px;
-          color: var(--text-primary);
+          color: var(--text-main);
         }
 
         /* Generic forms for settings */
@@ -189,11 +189,11 @@ export default function SettingsLayout({ children }) {
         
         .settings-content .form-group input:focus,
         .settings-content .form-group select:focus {
-          border-color: #00bfff;
+          border-color: var(--brand-primary);
         }
 
         .btn-primary {
-          background: var(--primary-color);
+          background: var(--brand-primary);
           color: white;
           border: none;
           padding: 10px 24px;
@@ -204,7 +204,7 @@ export default function SettingsLayout({ children }) {
         }
 
         .btn-primary:hover {
-          filter: brightness(0.9);
+          background: var(--brand-secondary);
         }
           
         .btn-outline {
