@@ -16,7 +16,7 @@ export async function PUT(req, { params }) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   try {
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
     
     const updated = await prisma.local.update({
@@ -40,7 +40,7 @@ export async function DELETE(req, { params }) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   try {
-    const { id } = params;
+    const { id } = await params;
     await prisma.local.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {

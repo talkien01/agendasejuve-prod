@@ -36,9 +36,9 @@ export async function POST(req) {
     const patient = await prisma.patient.create({
       data: {
         name: body.name,
-        email: body.email,
-        phone: body.phone,
-        identifier: body.identifier,
+        email: body.email || null,
+        phone: body.phone || null,
+        identifier: body.identifier || null,
         status: body.status || 'Activo',
       },
     });
