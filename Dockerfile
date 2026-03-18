@@ -5,7 +5,9 @@ WORKDIR /app
 
 # Install dependencies only when needed
 FROM base AS deps
+WORKDIR /app
 COPY package.json package-lock.json* ./
+COPY prisma ./prisma/
 RUN npm ci
 
 # Rebuild the source code only when needed
@@ -15,8 +17,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma Client 
-# Dummy URL to bypass validation during generation time
-ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL:-"postgresql://user:password@localhost:5432/db"}
 RUN npx prisma generate
 
 RUN npm run build
