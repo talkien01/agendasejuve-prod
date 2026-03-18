@@ -138,13 +138,14 @@ export default function Header() {
           display: flex;
           align-items: center;
           height: 100%;
+          gap: 12px;
         }
 
         .nav-link {
           display: flex;
           align-items: center;
           height: 100%;
-          padding: 0 16px;
+          padding: 0 20px;
           color: #a0aab5;
           font-size: 14px;
           font-weight: 500;
