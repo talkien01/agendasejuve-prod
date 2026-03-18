@@ -32,6 +32,7 @@ RUN adduser --system --uid 1001 nextjs || true
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/src/lib ./src/lib
 COPY --from=builder /app/node_modules ./node_modules
 
