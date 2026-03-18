@@ -1,8 +1,21 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import prisma from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
-export async function GET(request, { params }) {
+async function isAuthenticated(req) {
+  try {
+    const session = await getSession();
+    return session ? session : false;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function GET(req, { params }) {
+  const user = await isAuthenticated(req);
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
   try {
     const patient = await prisma.patient.findUnique({
       where: { id: params.id },
@@ -14,9 +27,12 @@ export async function GET(request, { params }) {
   }
 }
 
-export async function PATCH(request, { params }) {
+export async function PATCH(req, { params }) {
+  const user = await isAuthenticated(req);
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
   try {
-    const body = await request.json();
+    const body = await req.json();
     const patient = await prisma.patient.update({
       where: { id: params.id },
       data: {
@@ -33,7 +49,10 @@ export async function PATCH(request, { params }) {
   }
 }
 
-export async function DELETE(request, { params }) {
+export async function DELETE(req, { params }) {
+  const user = await isAuthenticated(req);
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
   try {
     await prisma.patient.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
