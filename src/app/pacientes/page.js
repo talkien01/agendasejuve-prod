@@ -11,8 +11,12 @@ import {
   Edit2,
   Trash2,
   X,
-  Loader2
+  Loader2,
+  ChevronDown
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 export default function PatientsPage() {
   const [patients, setPatients] = useState([]);
@@ -30,6 +34,7 @@ export default function PatientsPage() {
     identifier: '',
     status: 'Activo'
   });
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   useEffect(() => {
     fetchPatients();
@@ -135,6 +140,68 @@ export default function PatientsPage() {
     p.identifier?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const exportToCSV = () => {
+    const dataToExport = filteredPatients.map(p => ({
+      Nombre: p.name,
+      Email: p.email || '',
+      Telefono: p.phone || '',
+      Identificacion: p.identifier || '',
+      Estado: p.status,
+      'Fecha Creacion': new Date(p.createdAt).toLocaleDateString()
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `pacientes_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setShowExportMenu(false);
+  };
+
+  const exportToExcel = () => {
+    const dataToExport = filteredPatients.map(p => ({
+      Nombre: p.name,
+      Email: p.email || '',
+      Telefono: p.phone || '',
+      Identificacion: p.identifier || '',
+      Estado: p.status,
+      'Fecha Creacion': new Date(p.createdAt).toLocaleDateString()
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pacientes");
+    XLSX.writeFile(wb, `pacientes_${new Date().getTime()}.xlsx`);
+    setShowExportMenu(false);
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Base de Pacientes", 14, 15);
+    
+    const tableColumn = ["Nombre", "Email", "Telefono", "Identificacion", "Estado"];
+    const tableRows = filteredPatients.map(p => [
+      p.name,
+      p.email || '-',
+      p.phone || '-',
+      p.identifier || '-',
+      p.status
+    ]);
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+    
+    doc.save(`pacientes_${new Date().getTime()}.pdf`);
+    setShowExportMenu(false);
+  };
+
   const getStatusStyle = (status) => {
     switch (status) {
       case 'Activo': return { bg: '#E8F5E9', color: '#2E7D32' };
@@ -152,10 +219,20 @@ export default function PatientsPage() {
           <p>Gestiona la información y el historial de tus clientes</p>
         </div>
         <div className="header-actions">
-          <button className="btn-secondary">
-            <Download size={18} />
-            <span>Exportar</span>
-          </button>
+          <div className="export-container">
+            <button className="btn-secondary" onClick={() => setShowExportMenu(!showExportMenu)}>
+              <Download size={18} />
+              <span>Exportar</span>
+              <ChevronDown size={14} />
+            </button>
+            {showExportMenu && (
+              <div className="export-menu">
+                <button onClick={exportToExcel}>Excel (.xlsx)</button>
+                <button onClick={exportToCSV}>CSV (.csv)</button>
+                <button onClick={exportToPDF}>PDF (.pdf)</button>
+              </div>
+            )}
+          </div>
           <button className="btn-primary" onClick={() => handleOpenModal()}>
             <Plus size={18} />
             <span>Nuevo Paciente</span>
@@ -391,6 +468,42 @@ export default function PatientsPage() {
 
         .btn-secondary:hover {
           background-color: #f5f5f5;
+        }
+
+        .export-container {
+          position: relative;
+        }
+
+        .export-menu {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          margin-top: 4px;
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          z-index: 10;
+          min-width: 150px;
+          overflow: hidden;
+        }
+
+        .export-menu button {
+          display: block;
+          width: 100%;
+          padding: 10px 16px;
+          text-align: left;
+          border: none;
+          background: none;
+          font-size: 14px;
+          color: #333;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .export-menu button:hover {
+          background: #f5f5f5;
+          color: #0070f3;
         }
 
         .filter-bar {
