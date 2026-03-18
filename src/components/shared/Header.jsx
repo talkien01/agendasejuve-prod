@@ -42,7 +42,7 @@ export default function Header() {
     <header className="top-header">
       <div className="header-left">
         <Link href="/" className="logo-area">
-          <h1 className="logo-text">SEJUVE<span> Citas</span></h1>
+          <img src="/logo-sejuve.png" alt="SEJUVE Logo" className="header-logo" />
         </Link>
       </div>
 
@@ -114,17 +114,16 @@ export default function Header() {
         .logo-area {
           text-decoration: none;
           color: white;
+          display: flex;
+          align-items: center;
         }
 
-        .logo-text {
-          font-size: 20px;
-          font-weight: 700;
-          letter-spacing: -0.5px;
-          margin: 0;
-        }
-
-        .logo-text span {
-          color: var(--brand-primary);
+        .header-logo {
+          height: 32px;
+          object-fit: contain;
+          background-color: white; /* Optional: if the logo needs a white background to contrast against the dark header */
+          padding: 2px 8px;
+          border-radius: 4px;
         }
 
         .header-center {

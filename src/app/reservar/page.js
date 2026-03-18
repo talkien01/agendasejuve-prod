@@ -18,7 +18,7 @@ export default function ReservarPage() {
       {/* Header */}
       <header className="landing-header">
         <div className="header-content">
-          <h1 className="logo">Secretaría de la Juventud</h1>
+          <img src="/logo-sejuve.png" alt="SEJUVE Logo" style={{ height: '32px', objectFit: 'contain' }} />
           <Link href="/login" className="login-link">Iniciar sesión</Link>
         </div>
       </header>
@@ -32,8 +32,7 @@ export default function ReservarPage() {
             <div className="cover-image"></div>
             <div className="brand-info">
               <div className="brand-logo">
-                <span className="text-primary font-bold">ser</span><br/>
-                <span className="text-purple-600 font-bold">sejuve</span>
+                <img src="/logo-sejuve.png" alt="Ser Sejuve Logo" style={{ width: '120px', objectFit: 'contain', display: 'block' }} />
               </div>
               <div className="brand-details">
                 <h2>Secretaría de la Juventud</h2>
