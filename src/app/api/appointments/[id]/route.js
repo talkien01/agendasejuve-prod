@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
@@ -8,7 +9,11 @@ export async function GET(request, { params }) {
       where: { id: params.id },
       include: { patient: true, resource: true },
     });
-    if (!appointment) return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
+
+    if (!appointment) {
+      return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
+    }
+
     return NextResponse.json(appointment);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch appointment' }, { status: 500 });
@@ -18,6 +23,7 @@ export async function GET(request, { params }) {
 export async function PATCH(request, { params }) {
   try {
     const body = await request.json();
+
     const appointment = await prisma.appointment.update({
       where: { id: params.id },
       data: {
@@ -32,6 +38,7 @@ export async function PATCH(request, { params }) {
       },
       include: { patient: true, resource: true },
     });
+
     return NextResponse.json(appointment);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update appointment' }, { status: 500 });
@@ -40,7 +47,10 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    await prisma.appointment.delete({ where: { id: params.id } });
+    await prisma.appointment.delete({
+      where: { id: params.id },
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete appointment' }, { status: 500 });
