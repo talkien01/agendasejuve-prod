@@ -2,9 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+const globalForPrisma = globalThis;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -13,7 +11,7 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 
 const prisma =
-  globalForPrisma.prisma ??
+  globalForPrisma.prisma ||
   new PrismaClient({
     adapter,
     log: ['error'],
