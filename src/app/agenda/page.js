@@ -141,6 +141,14 @@ export default function AgendaPage() {
       return;
     }
 
+    // 0. Validation: Prevent past appointments
+    const appointmentDateTime = new Date(`${form.date}T${form.startTime}`);
+    const now = new Date();
+    if (appointmentDateTime < now) {
+      alert('No es posible programar citas en el pasado. Por favor selecciona una fecha y hora futura.');
+      return;
+    }
+
     setSaving(true);
     try {
       let finalPatientId = form.patientId;
