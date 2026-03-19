@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -36,6 +36,24 @@ export default function AgendaPage() {
     viewMode: view, setViewMode: setView,
     branchId, professionalId, statusFilter
   } = useFilters();
+
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isToday = useMemo(() => {
+    return format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+  }, [currentDate]);
+
+  const timeLineTop = useMemo(() => {
+    const h = now.getHours();
+    const m = now.getMinutes();
+    if (h < 8 || h >= 21) return -1;
+    return (h - 8) * 60 + (m / 60) * 60;
+  }, [now]);
 
   const [appointments, setAppointments] = useState([]);
   const [professionals, setProfessionals] = useState([]);
@@ -281,6 +299,18 @@ export default function AgendaPage() {
               </tr>
             </thead>
             <tbody>
+              {/* Current Time Line */}
+              {isToday && timeLineTop !== -1 && (
+                <tr style={{ position: 'relative', height: 0 }}>
+                  <td colSpan={100} style={{ padding: 0, position: 'absolute', top: timeLineTop, left: 0, right: 0, zIndex: 100, pointerEvents: 'none' }}>
+                    <div className="current-time-line">
+                      <div className="time-indicator-bubble">
+                        {format(now, 'HH:mm')}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
               {hours.map(hour => (
                 <tr key={hour}>
                   <td className="time-label">{hour}:00</td>
@@ -610,6 +640,27 @@ export default function AgendaPage() {
           position: relative;
           padding: 4px;
           vertical-align: top;
+        }
+
+        .current-time-line {
+          position: absolute;
+          left: 72px; /* After time column */
+          right: 0;
+          height: 2px;
+          background: #ff5252;
+          box-shadow: 0 0 4px rgba(255,82,82,0.5);
+        }
+
+        .time-indicator-bubble {
+          position: absolute;
+          left: -48px;
+          top: -9px;
+          background: #ff5252;
+          color: white;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 10px;
         }
 
         .appointment-block {
