@@ -71,7 +71,7 @@ export default function AgendaPage() {
     identifier: ''
   });
   const [form, setForm] = useState({
-    patientId: '', professionalId: '', resourceId: '', type: '',
+    patientId: '', professionalId: '', resourceId: '', type: 'Cita',
     date: format(new Date(), 'yyyy-MM-dd'),
     startTime: '09:00', endTime: '10:00', status: 'PENDIENTE', notes: '',
   });
@@ -262,7 +262,18 @@ export default function AgendaPage() {
             </button>
             {showNewMenu && (
               <div className="new-menu-box card">
-                <button className="menu-item" onClick={() => { setShowModal(true); setShowNewMenu(false); }}>
+                <button className="menu-item" onClick={() => { 
+                  setForm({ ...form, type: 'Cita', patientId: '', notes: '' });
+                  setShowModal(true); 
+                  setShowNewMenu(false); 
+                }}>
+                  <Plus size={14} /> <span>Cita</span>
+                </button>
+                <button className="menu-item" onClick={() => { 
+                  setForm({ ...form, type: 'Reserva', patientId: '', notes: '' });
+                  setShowModal(true); 
+                  setShowNewMenu(false); 
+                }}>
                   <Plus size={14} /> <span>Reserva</span>
                 </button>
                 <button className="menu-item" onClick={() => setShowNewMenu(false)}>
@@ -360,7 +371,7 @@ export default function AgendaPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Nueva Cita</h2>
+              <h2>{form.type === 'Cita' ? 'Nueva Cita' : 'Nueva Reserva'}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={20} /></button>
             </div>
             <div className="modal-body">
@@ -464,7 +475,7 @@ export default function AgendaPage() {
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>
               <button className="btn-save" onClick={handleSave} disabled={saving}>
                 {saving ? <Loader2 size={16} className="spin" /> : <Plus size={16} />}
-                {saving ? 'Guardando...' : 'Guardar Cita'}
+                {saving ? 'Guardando...' : `Guardar ${form.type === 'Cita' ? 'Cita' : 'Reserva'}`}
               </button>
             </div>
           </div>
