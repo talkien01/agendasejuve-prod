@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Plus,
   Users,
   LayoutGrid,
@@ -12,44 +13,83 @@ import {
 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useFilters } from '@/context/FilterContext';
 
 const hours = Array.from({ length: 13 }, (_, i) => i + 8); // 8 AM to 8 PM
 
 const STATUS_COLOR = {
   CONFIRMADA: '#1976d2',
-  PENDIENTE:  '#f57c00',
-  ASISTIDA:   '#388e3c',
-  CANCELADA:  '#c62828',
+  PENDIENTE: '#f57c00',
+  ASISTIDA: '#388e3c',
+  CANCELADA: '#c62828',
 };
 const STATUS_BG = {
   CONFIRMADA: '#e3f2fd',
-  PENDIENTE:  '#fff8e1',
-  ASISTIDA:   '#e8f5e9',
-  CANCELADA:  '#ffebee',
+  PENDIENTE: '#fff8e1',
+  ASISTIDA: '#e8f5e9',
+  CANCELADA: '#ffebee',
 };
 
 export default function AgendaPage() {
-  const [view, setView]               = useState('resources');
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const {
+    selectedDate: currentDate, setSelectedDate: setCurrentDate,
+    viewMode: view, setViewMode: setView,
+    branchId, professionalId, statusFilter
+  } = useFilters();
+
   const [appointments, setAppointments] = useState([]);
   const [professionals, setProfessionals] = useState([]);
-  const [resources, setResources]     = useState([]);
-  const [patients, setPatients]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [showModal, setShowModal]     = useState(false);
-  const [saving, setSaving]           = useState(false);
-  const [form, setForm]               = useState({
-    patientId: '', resourceId: '', type: '',
+  const [resources, setResources] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showNewMenu, setShowNewMenu] = useState(false);
+  const [isNewPatient, setIsNewPatient] = useState(false);
+  const [newPatientData, setNewPatientData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    identifier: ''
+  });
+  const [form, setForm] = useState({
+    patientId: '', professionalId: '', resourceId: '', type: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     startTime: '09:00', endTime: '10:00', status: 'PENDIENTE', notes: '',
   });
+
+  const openNewAppointment = (colId, hour) => {
+    let defaultType = 'Cita';
+    if (view === 'resources') {
+      const res = resources.find(r => r.id === colId);
+      if (res && (res.type === 'Auditorio' || res.type === 'Sala' || res.type === 'Cabina')) {
+        defaultType = 'Reserva';
+      }
+    }
+    
+    setForm({
+      ...form,
+      date: format(currentDate, 'yyyy-MM-dd'),
+      startTime: `${hour.toString().padStart(2, '0')}:00`,
+      endTime: `${(hour + 1).toString().padStart(2, '0')}:00`,
+      type: defaultType,
+      professionalId: view === 'professionals' ? colId : '',
+      resourceId: view === 'resources' ? colId : '',
+    });
+    setShowModal(true);
+  };
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
       const dateStr = format(currentDate, 'yyyy-MM-dd');
+      let url = `/api/appointments?date=${dateStr}`;
+      if (branchId) url += `&localId=${branchId}`;
+      if (professionalId) url += `&professionalId=${professionalId}`;
+      if (statusFilter) url += `&status=${statusFilter}`;
+
       const [appsRes, profsRes, resRes, patsRes] = await Promise.all([
-        fetch(`/api/appointments?date=${dateStr}`),
+        fetch(url),
         fetch('/api/professionals'),
         fetch('/api/resources'),
         fetch('/api/patients'),
@@ -66,48 +106,91 @@ export default function AgendaPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentDate]);
+  }, [currentDate, branchId, professionalId, statusFilter]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const columns = view === 'professionals'
-    ? professionals.map(p => ({ id: p.id, name: p.name, key: `prof-${p.id}` }))
-    : resources.map(r => ({ id: r.id, name: r.name, key: `res-${r.id}` }));
+    ? professionals
+      .filter(p => !branchId || p.localId === branchId)
+      .filter(p => !professionalId || p.id === professionalId)
+      .map(p => ({ id: p.id, name: p.name, key: `prof-${p.id}` }))
+    : resources
+      .filter(r => !branchId || r.localId === branchId)
+      .map(r => ({ id: r.id, name: r.name, key: `res-${r.id}` }));
 
   const getAppointmentsForSlot = (colId, hour) => {
     return appointments.filter(app => {
       const appHour = parseInt(app.startTime?.split(':')[0], 10);
       if (view === 'resources') return app.resourceId === colId && appHour === hour;
-      return false; // professionals view would need professionalId on appointment
+      if (view === 'professionals') return app.professionalId === colId && appHour === hour;
+      return false;
     });
   };
 
   const handleFormChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSave = async () => {
-    if (!form.patientId || !form.type || !form.startTime) return;
+    if ((!isNewPatient && !form.patientId) || !form.type || !form.startTime) {
+      alert('Por favor completa los campos obligatorios (*)');
+      return;
+    }
+
+    if (isNewPatient && !newPatientData.name) {
+      alert('El nombre del paciente es obligatorio');
+      return;
+    }
+
     setSaving(true);
     try {
+      let finalPatientId = form.patientId;
+
+      // 1. Create patient if new
+      if (isNewPatient) {
+        const pRes = await fetch('/api/patients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPatientData),
+        });
+        if (!pRes.ok) {
+          const err = await pRes.json();
+          throw new Error(err.error || 'Error al crear el paciente');
+        }
+        const newPatient = await pRes.json();
+        finalPatientId = newPatient.id;
+      }
+
+      // 2. Create appointment
       const res = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          patientId: finalPatientId,
           date: new Date(form.date).toISOString(),
+          professionalId: form.professionalId || null,
           resourceId: form.resourceId || null,
+          localId: branchId || null,
         }),
       });
+
       if (res.ok) {
         setShowModal(false);
+        setIsNewPatient(false);
+        setNewPatientData({ name: '', email: '', phone: '', identifier: '' });
         setForm({
-          patientId: '', resourceId: '', type: '',
+          patientId: '', professionalId: '', resourceId: '', type: '',
           date: format(currentDate, 'yyyy-MM-dd'),
           startTime: '09:00', endTime: '10:00', status: 'PENDIENTE', notes: '',
         });
         fetchAll();
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al crear la cita');
       }
     } catch (err) {
       console.error(err);
+      alert(err.message);
     } finally {
       setSaving(false);
     }
@@ -146,9 +229,25 @@ export default function AgendaPage() {
               <LayoutGrid size={16} /><span>Recursos</span>
             </button>
           </div>
-          <button className="btn-primary-small" onClick={() => setShowModal(true)}>
-            <Plus size={16} /><span>Nueva Cita</span>
-          </button>
+          <div className="new-dropdown-container">
+            <button className="btn-new-dropdown" onClick={() => setShowNewMenu(!showNewMenu)}>
+              <span>Nuevo</span>
+              <ChevronDown size={14} />
+            </button>
+            {showNewMenu && (
+              <div className="new-menu-box card">
+                <button className="menu-item" onClick={() => { setShowModal(true); setShowNewMenu(false); }}>
+                  <Plus size={14} /> <span>Reserva</span>
+                </button>
+                <button className="menu-item" onClick={() => setShowNewMenu(false)}>
+                  <X size={14} /> <span>Bloquear horario</span>
+                </button>
+                <button className="menu-item" onClick={() => { setShowNewMenu(false); }}>
+                  <LayoutGrid size={14} /> <span>Nueva venta</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -180,11 +279,16 @@ export default function AgendaPage() {
                   {columns.map(col => {
                     const slotApps = getAppointmentsForSlot(col.id, hour);
                     return (
-                      <td key={`${col.key}-${hour}`} className="calendar-slot">
+                      <td 
+                        key={`${col.key}-${hour}`} 
+                        className="calendar-slot"
+                        onClick={() => openNewAppointment(col.id, hour)}
+                      >
                         {slotApps.map(app => (
                           <div
                             key={app.id}
                             className="appointment-block"
+                            onClick={(e) => e.stopPropagation()} // Prevent opening New Appointment modal
                             style={{
                               background: STATUS_BG[app.status] || '#e3f2fd',
                               borderLeftColor: STATUS_COLOR[app.status] || '#1976d2',
@@ -195,7 +299,10 @@ export default function AgendaPage() {
                             <span className="app-meta">{app.type}</span>
                             <button
                               className="app-delete"
-                              onClick={() => handleDeleteAppointment(app.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAppointment(app.id);
+                              }}
                               title="Eliminar"
                             >×</button>
                           </div>
@@ -220,15 +327,49 @@ export default function AgendaPage() {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Paciente *</label>
-                <select name="patientId" value={form.patientId} onChange={handleFormChange}>
-                  <option value="">Seleccionar paciente...</option>
-                  {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
+                <div className="label-with-action">
+                  <label>Usuario *</label>
+                  <button
+                    className="text-btn-primary"
+                    onClick={() => setIsNewPatient(!isNewPatient)}
+                  >
+                    {isNewPatient ? 'Seleccionar existente' : '+ Agregar usuario'}
+                  </button>
+                </div>
+
+                {isNewPatient ? (
+                  <div className="new-patient-fields">
+                    <input
+                      placeholder="Nombre Completo *"
+                      value={newPatientData.name}
+                      onChange={(e) => setNewPatientData({ ...newPatientData, name: e.target.value })}
+                    />
+                    <div className="form-row mt-8">
+                      <input
+                        placeholder="Email"
+                        value={newPatientData.email}
+                        onChange={(e) => setNewPatientData({ ...newPatientData, email: e.target.value })}
+                      />
+                      <input
+                        placeholder="Teléfono"
+                        value={newPatientData.phone}
+                        onChange={(e) => setNewPatientData({ ...newPatientData, phone: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <select name="patientId" value={form.patientId} onChange={handleFormChange}>
+                    <option value="">Seleccionar usuario...</option>
+                    {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                )}
               </div>
               <div className="form-group">
                 <label>Tipo / Servicio *</label>
-                <input name="type" placeholder="Ej: Valoración, Terapia" value={form.type} onChange={handleFormChange} />
+                <select name="type" value={form.type} onChange={handleFormChange}>
+                  <option value="Cita">Cita (Atención Psicológica)</option>
+                  <option value="Reserva">Reserva (Espacios/Recursos)</option>
+                </select>
               </div>
               <div className="form-row">
                 <div className="form-group">
@@ -245,11 +386,25 @@ export default function AgendaPage() {
                 </div>
               </div>
               <div className="form-row">
+                {form.type === 'Cita' && (
+                  <div className="form-group">
+                    <label>Profesional</label>
+                    <select name="professionalId" value={form.professionalId} onChange={handleFormChange}>
+                      <option value="">Sin profesional</option>
+                      {professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="form-group">
-                  <label>Recurso</label>
+                  <label>Recurso ({form.type === 'Cita' ? 'Consultorio' : 'Sala/Auditorio'})</label>
                   <select name="resourceId" value={form.resourceId} onChange={handleFormChange}>
                     <option value="">Sin recurso</option>
-                    {resources.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    {resources
+                      .filter(r => {
+                        if (form.type === 'Cita') return r.type === 'Consultorio';
+                        return r.type !== 'Consultorio';
+                      })
+                      .map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
@@ -605,6 +760,111 @@ export default function AgendaPage() {
         }
 
         .btn-save:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .new-dropdown-container {
+          position: relative;
+        }
+
+        .btn-new-dropdown {
+          background: #6200ee;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 8px 0 0 8px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+        }
+
+        .btn-new-dropdown:after {
+          content: '';
+          position: absolute;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          width: 32px;
+          background: rgba(255,255,255,0.1);
+          border-radius: 0 8px 8px 0;
+        }
+
+        /* Simplified "Nuevo" button to match the user screenshot better */
+        .btn-new-dropdown {
+          background: #6200ee;
+          color: white;
+          border: none;
+          padding: 8px 20px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          cursor: pointer;
+        }
+
+        .new-menu-box {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          margin-top: 8px;
+          min-width: 180px;
+          z-index: 100;
+          display: flex;
+          flex-direction: column;
+          padding: 8px 0;
+          border: 1px solid var(--border-color);
+        }
+
+        .menu-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 16px;
+          border: none;
+          background: none;
+          width: 100%;
+          text-align: left;
+          cursor: pointer;
+          font-size: 14px;
+          color: var(--text-main);
+          transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+          background: #f5f5f5;
+        }
+
+        .label-with-action {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2px;
+        }
+
+        .text-btn-primary {
+          background: none;
+          border: none;
+          color: var(--brand-primary);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 0;
+        }
+
+        .new-patient-fields {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border: 1px dashed var(--border-color);
+        }
+
+        .mt-8 { margin-top: 8px; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.8s linear infinite; }

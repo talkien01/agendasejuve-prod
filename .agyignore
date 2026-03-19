@@ -1,0 +1,8 @@
+# Ignorar archivos del motor de la IA
+node_modules/
+.next/
+*.log
+*.tmp
+*.cache
+logs/
+temp/

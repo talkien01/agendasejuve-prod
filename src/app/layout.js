@@ -1,5 +1,6 @@
 import "./globals.css";
 import MainLayout from "@/components/layout/MainLayout";
+import { FilterProvider } from "@/context/FilterContext";
 
 export const metadata = {
   title: "SEJUVE Citas",
@@ -10,9 +11,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body>
-        <MainLayout>
-          {children}
-        </MainLayout>
+        <FilterProvider>
+          <MainLayout>
+            {children}
+          </MainLayout>
+        </FilterProvider>
       </body>
     </html>
   );

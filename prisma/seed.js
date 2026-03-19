@@ -69,13 +69,20 @@ async function main() {
   }
 
   // 4. Create Resources
+  await prisma.resource.deleteMany({});
   const resources = [
-    { name: 'Auditorio Principal', type: 'Auditorio', localId: local.id, status: 'Activo', services: 'Conferencia, Taller' },
-    { name: 'Sala de Juntas A', type: 'Sala', localId: local.id, status: 'Activo', services: 'Reunión, Entrevista' },
+    { name: 'Consultorio 1', type: 'Consultorio', localId: local.id, status: 'Activo' },
+    { name: 'Consultorio 2', type: 'Consultorio', localId: local.id, status: 'Activo' },
+    { name: 'Consultorio 3', type: 'Consultorio', localId: local.id, status: 'Activo' },
+    { name: 'Consultorio 4', type: 'Consultorio', localId: local.id, status: 'Activo' },
+    { name: 'Auditorio Principal', type: 'Auditorio', localId: local.id, status: 'Activo' },
+    { name: 'Sala de Juntas A', type: 'Sala', localId: local.id, status: 'Activo' },
+    { name: 'Cabina de Audio', type: 'Cabina', localId: local.id, status: 'Activo' },
+    { name: 'Cabina de TV', type: 'Cabina', localId: local.id, status: 'Activo' },
   ];
 
   for (const r of resources) {
-    const existing = await prisma.resource.findFirst({ where: { name: r.name } });
+    const existing = await prisma.resource.findFirst({ where: { name: r.name, localId: local.id } });
     if (!existing) {
       await prisma.resource.create({ data: r });
     }
@@ -90,7 +97,7 @@ async function main() {
 
   // 6. Create Default User
   const adminEmail = 'admin@sejuve.com';
-  const adminPasswordHash = '$2b$10$gfz0LAhkOykSj0y6pNvJyuL4XjGGfST.IJb5COddxb9TeeqibQYeLa'; // admin123
+  const adminPasswordHash = await require('bcryptjs').hash('admin123', 10);
   
   await prisma.user.upsert({
     where: { email: adminEmail },

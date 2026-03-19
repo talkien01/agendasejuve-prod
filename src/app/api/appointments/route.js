@@ -6,6 +6,10 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const dateStr = searchParams.get('date');
+    const professionalId = searchParams.get('professionalId');
+    const resourceId = searchParams.get('resourceId');
+    const localId = searchParams.get('localId');
+    const status = searchParams.get('status');
 
     let where = {};
     if (dateStr) {
@@ -13,7 +17,25 @@ export async function GET(request) {
       date.setHours(0, 0, 0, 0);
       const nextDay = new Date(date);
       nextDay.setDate(nextDay.getDate() + 1);
-      where = { date: { gte: date, lt: nextDay } };
+      where.date = { gte: date, lt: nextDay };
+    }
+
+    if (professionalId && professionalId !== 'all' && professionalId !== '') {
+      where.professionalId = professionalId;
+    }
+    if (resourceId && resourceId !== 'all' && resourceId !== '') {
+      where.resourceId = resourceId;
+    }
+    if (localId && localId !== 'all' && localId !== '') {
+      where.localId = localId;
+    }
+    if (status && status !== 'TODAS' && status !== '') {
+      // Logic for "ACTIVAS" (CONFIRMADA, PENDIENTE) vs others
+      if (status === 'ACTIVAS') {
+        where.status = { in: ['CONFIRMADA', 'PENDIENTE', 'ASISTIDA'] };
+      } else {
+        where.status = status;
+      }
     }
 
     const appointments = await prisma.appointment.findMany({
@@ -21,6 +43,7 @@ export async function GET(request) {
       include: {
         patient: true,
         resource: true,
+        professional: true,
       },
       orderBy: { startTime: 'asc' },
     });
@@ -42,7 +65,9 @@ export async function POST(request) {
         status: body.status || 'PENDIENTE',
         notes: body.notes,
         patientId: body.patientId,
+        professionalId: body.professionalId,
         resourceId: body.resourceId,
+        localId: body.localId,
       },
     });
     return NextResponse.json(appointment);

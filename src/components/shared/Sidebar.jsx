@@ -1,49 +1,82 @@
 import { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Link2, ChevronDown } from 'lucide-react';
+import { useFilters } from '@/context/FilterContext';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function Sidebar() {
-  const [currentDate, setCurrentDate] = useState(new Date('2026-03-18T12:00:00Z'));
-  
+  const { 
+    selectedDate, setSelectedDate, 
+    branchId, setBranchId, 
+    viewMode, setViewMode, 
+    professionalId, setProfessionalId, 
+    statusFilter, setStatusFilter 
+  } = useFilters();
+
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [locales, setLocales] = useState([]);
+  const [professionals, setProfessionals] = useState([]);
+
   useEffect(() => {
-    // Ensure we start with the current date based on user's timezone when hydrated
-    setCurrentDate(new Date());
+    async function fetchData() {
+      try {
+        const [locRes, profRes] = await Promise.all([
+          fetch('/api/admin/locales'),
+          fetch('/api/professionals')
+        ]);
+        const locData = await locRes.json();
+        const profData = await profRes.json();
+        setLocales(locData.locales || []);
+        setProfessionals(Array.isArray(profData) ? profData : []);
+      } catch (err) {
+        console.error('Error fetching sidebar data:', err);
+      }
+    }
+    fetchData();
   }, []);
 
-  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year, month) => {
-    let day = new Date(year, month, 1).getDay();
-    // Convert Sunday (0) to 6, Monday (1) to 0, etc to make Monday the first day
-    return day === 0 ? 6 : day - 1;
-  };
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const daysInMonth = getDaysInMonth(year, month);
-  const firstDay = getFirstDayOfMonth(year, month);
-  const today = new Date().getDate();
-  const isCurrentMonth = new Date().getMonth() === month && new Date().getFullYear() === year;
-
-  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const monthStart = startOfMonth(calendarMonth);
+  const monthEnd = endOfMonth(calendarMonth);
+  const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  
+  // Calculate padding for start of month
+  const firstDay = (monthStart.getDay() + 6) % 7; // Monday = 0
+  const paddingDays = Array.from({ length: firstDay });
 
   return (
     <aside className="sidebar">
       <div className="sidebar-section calendar-section">
         <div className="mini-calendar">
           <div className="cal-header">
-            <button>&lt;</button>
-            <span>{monthNames[month]} {year}</span>
-            <button>&gt;</button>
+            <button onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}>&lt;</button>
+            <span>{format(calendarMonth, 'MMMM yyyy', { locale: es })}</span>
+            <button onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>&gt;</button>
           </div>
           <div className="cal-grid">
-            <span className="cal-day-name">Lu</span><span className="cal-day-name">Ma</span><span className="cal-day-name">Mi</span><span className="cal-day-name">Ju</span><span className="cal-day-name">Vi</span><span className="cal-day-name">Sa</span><span className="cal-day-name">Do</span>
-            {/* Empty slots for days before the 1st */}
-            {Array.from({ length: firstDay }).map((_, i) => (
-              <span key={`empty-${i}`} className="cal-day empty"></span>
+            <span className="cal-day-name">Lu</span>
+            <span className="cal-day-name">Ma</span>
+            <span className="cal-day-name">Mi</span>
+            <span className="cal-day-name">Ju</span>
+            <span className="cal-day-name">Vi</span>
+            <span className="cal-day-name">Sa</span>
+            <span className="cal-day-name">Do</span>
+            
+            {paddingDays.map((_, i) => (
+              <span key={`padding-${i}`} className="cal-day empty"></span>
             ))}
-            {/* Actual days */}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-               const isActive = isCurrentMonth && (i + 1) === today;
-               return <span key={`day-${i}`} className={`cal-day ${isActive ? 'active' : ''}`}>{i + 1}</span>;
+            
+            {calendarDays.map((day) => {
+              const isActive = isSameDay(day, selectedDate);
+              const isToday = isSameDay(day, new Date());
+              return (
+                <span 
+                  key={day.toISOString()} 
+                  className={`cal-day ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}`}
+                  onClick={() => setSelectedDate(day)}
+                >
+                  {format(day, 'd')}
+                </span>
+              );
             })}
           </div>
         </div>
@@ -60,34 +93,58 @@ export default function Sidebar() {
       <div className="sidebar-section filter-section">
         <div className="filter-group">
           <label>Sucursal</label>
-          <div className="filter-select">
-            <span>Secretaría de la Juventud</span>
-            <ChevronDown size={16} />
-          </div>
+          <select 
+            className="filter-select-input" 
+            value={branchId} 
+            onChange={(e) => setBranchId(e.target.value)}
+          >
+            <option value="">Todas las sucursales</option>
+            {locales.map(l => (
+              <option key={l.id} value={l.id}>{l.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="filter-group">
           <label>Ver agenda por</label>
-          <div className="filter-select">
-            <span>Profesional</span>
-            <ChevronDown size={16} />
-          </div>
+          <select 
+            className="filter-select-input" 
+            value={viewMode} 
+            onChange={(e) => setViewMode(e.target.value)}
+          >
+            <option value="professionals">Profesional</option>
+            <option value="resources">Recurso</option>
+          </select>
         </div>
 
         <div className="filter-group">
           <label>Profesional</label>
-          <div className="filter-select">
-            <span>Todos</span>
-            <ChevronDown size={16} />
-          </div>
+          <select 
+            className="filter-select-input" 
+            value={professionalId} 
+            onChange={(e) => setProfessionalId(e.target.value)}
+          >
+            <option value="">Todos</option>
+            {professionals.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="filter-group">
           <label>Estado de la reserva</label>
-          <div className="filter-select">
-            <span>Reservas activas</span>
-            <ChevronDown size={16} />
-          </div>
+          <select 
+            className="filter-select-input" 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="ACTIVAS">Reservas activas</option>
+            <option value="TODAS">Todas las reservas</option>
+            <option value="PENDIENTE">Pendientes</option>
+            <option value="CONFIRMADA">Confirmadas</option>
+            <option value="ASISTIDA">Asistidas</option>
+            <option value="CANCELADA">Canceladas</option>
+          </select>
         </div>
       </div>
 
@@ -199,6 +256,22 @@ export default function Sidebar() {
           color: var(--text-secondary);
           margin-bottom: 6px;
           font-weight: 500;
+        }
+
+        .filter-select-input {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid var(--border-color);
+          border-radius: 6px;
+          font-size: 13px;
+          color: var(--text-main);
+          background-color: white;
+          outline: none;
+          cursor: pointer;
+        }
+
+        .filter-select-input:focus {
+          border-color: var(--brand-primary);
         }
 
         .filter-select {
