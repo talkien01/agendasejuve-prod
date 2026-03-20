@@ -14,7 +14,6 @@ import {
 const kpis = [
   { name: 'Tasa de Asistencia', value: '92.4%', sub: '+2.1% vs mes pas.', color: '#4CAF50' },
   { name: 'Reservas Nuevas', value: '482', sub: '-5% vs mes pas.', color: '#00BFFF' },
-  { name: 'Ingreso Promedio/Cita', value: '$450', sub: '+12% vs mes pas.', color: '#FF9800' },
   { name: 'Nuevos Pacientes', value: '64', sub: '+8% vs mes pas.', color: '#E91E63' },
 ];
 
@@ -127,7 +126,7 @@ export default function ReportsPage() {
 
         .kpi-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(3, 1fr);
           gap: 20px;
         }
 
