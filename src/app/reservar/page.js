@@ -18,6 +18,10 @@ export default function ReservarPage() {
     time: null,
   });
 
+  // Submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingResult, setBookingResult] = useState(null);
+
   // Step 3 state
   const [selectedDate, setSelectedDate] = useState(null);
   const [today, setToday] = useState(null);
@@ -274,10 +278,33 @@ export default function ReservarPage() {
                 </div>
               </div>
 
-              <form className="user-form" onSubmit={(e) => {
+              <form className="user-form" onSubmit={async (e) => {
                 e.preventDefault();
-                alert('¡Reservación creada con éxito! (Esta es una prueba, los datos no se guardaron)');
-                setStep(1);
+                setIsSubmitting(true);
+                try {
+                  const res = await fetch('/api/reservar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      ...booking,
+                      userData
+                    })
+                  });
+                  
+                  if (res.ok) {
+                    const result = await res.json();
+                    setBookingResult(result.appointment);
+                    setStep(5);
+                  } else {
+                    const err = await res.json();
+                    alert(err.error || 'Error al crear la reserva');
+                  }
+                } catch (err) {
+                  console.error(err);
+                  alert('Error de conexión. Intente más tarde.');
+                } finally {
+                  setIsSubmitting(false);
+                }
               }}>
                 <div className="form-group">
                   <label>Nombre completo</label>
@@ -302,10 +329,51 @@ export default function ReservarPage() {
                     </div>
                   </div>
                 </div>
-                <button type="submit" className="agendar-btn full-width">
-                  Confirmar Reservación
+                <button type="submit" className="agendar-btn full-width" disabled={isSubmitting}>
+                  {isSubmitting ? 'Procesando...' : 'Confirmar Reservación'}
                 </button>
               </form>
+            </div>
+          )}
+
+          {step === 5 && bookingResult && (
+            <div className="success-section text-center">
+              <div className="success-icon">✓</div>
+              <h3>¡Reservación Confirmada!</h3>
+              <p>Tu cita ha sido agendada exitosamente.</p>
+              
+              <div className="booking-details-card">
+                <div className="detail-row">
+                  <span>Folio:</span> <strong>#{bookingResult.id.substring(0, 8).toUpperCase()}</strong>
+                </div>
+                <div className="detail-row">
+                  <span>Servicio:</span> <strong>{selectedService?.name}</strong>
+                </div>
+                <div className="detail-row">
+                  <span>Profesional:</span> <strong>{bookingResult.professional?.name || 'Asignación automática'}</strong>
+                </div>
+                <div className="detail-row">
+                  <span>Fecha:</span> <strong>{format(new Date(bookingResult.date), "EEEE d 'de' MMMM", { locale: es })}</strong>
+                </div>
+                <div className="detail-row">
+                  <span>Hora:</span> <strong>{bookingResult.startTime}</strong>
+                </div>
+              </div>
+
+              <div className="success-actions">
+                <Link href="/" className="btn-primary">Volver al inicio</Link>
+                <button className="btn-outline" onClick={() => {
+                  setStep(1);
+                  setBookingResult(null);
+                  setBooking({ 
+                    localId: data.locales[0]?.id || null, 
+                    serviceId: null, 
+                    professionalId: null, 
+                    date: null, 
+                    time: null 
+                  });
+                }}>Hacer otra reserva</button>
+              </div>
             </div>
           )}
         </div>
@@ -786,6 +854,67 @@ export default function ReservarPage() {
 
         .summary-item:last-child {
           border-bottom: none;
+        }
+
+        /* Success Step Styles */
+        .text-center { text-align: center; }
+        .success-icon {
+          width: 80px;
+          height: 80px;
+          background: #10b981;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 40px;
+          margin: 0 auto 24px;
+          box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .success-section h3 { font-size: 28px; margin-bottom: 8px; color: #1a1a1a; }
+        .success-section p { color: #666; margin-bottom: 32px; font-size: 16px; }
+
+        .booking-details-card {
+          background: #f8fafc;
+          border-radius: 20px;
+          padding: 24px;
+          max-width: 400px;
+          margin: 0 auto 32px;
+          border: 1px solid #edf2f7;
+        }
+
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 12px 0;
+          border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .detail-row:last-child { border-bottom: none; }
+        .detail-row span { color: #718096; font-size: 14px; }
+        .detail-row strong { color: #2d3748; font-size: 15px; }
+
+        .success-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          max-width: 300px;
+          margin: 0 auto;
+        }
+
+        .btn-primary {
+          background: #00BFFF;
+          color: white;
+          padding: 14px;
+          border-radius: 12px;
+          font-weight: 700;
+          text-decoration: none;
+        }
+
+        .agendar-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .form-group {
