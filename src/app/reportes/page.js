@@ -79,16 +79,29 @@ export default function ReportsPage() {
             <h3>Distribución de Servicios</h3>
           </div>
           <div className="chart-placeholder">
-            <div className="pie-chart-sim">
-              <div className="pie-segment s1"></div>
-              <div className="pie-segment s2"></div>
-              <div className="pie-segment s3"></div>
+            <div className="pie-chart-sim" style={{ background: 'conic-gradient(#00BFFF 0% 35%, #4CAF50 35% 65%, #9C27B0 65% 100%)' }}>
               <div className="pie-center"></div>
             </div>
             <div className="chart-legend">
-              <div className="legend-item"><span className="dot s1"></span><span>Consulta (45%)</span></div>
+              <div className="legend-item"><span className="dot s1"></span><span>Consulta (35%)</span></div>
               <div className="legend-item"><span className="dot s2"></span><span>Terapia (30%)</span></div>
-              <div className="legend-item"><span className="dot s3"></span><span>Otros (25%)</span></div>
+              <div className="legend-item"><span className="dot s-res"></span><span>Reservas (35%)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card report-card">
+          <div className="card-header">
+            <h3>Distribución de Reservas (Espacios)</h3>
+          </div>
+          <div className="chart-placeholder">
+            <div className="pie-chart-sim" style={{ background: 'conic-gradient(#FF9800 0% 40%, #009688 40% 70%, #607D8B 70% 100%)' }}>
+              <div className="pie-center"></div>
+            </div>
+            <div className="chart-legend">
+              <div className="legend-item"><span className="dot s-cabina"></span><span>Cabinas (40%)</span></div>
+              <div className="legend-item"><span className="dot s-auditorio"></span><span>Auditorio (30%)</span></div>
+              <div className="legend-item"><span className="dot s-sala"></span><span>Salas de Juntas (30%)</span></div>
             </div>
           </div>
         </div>
@@ -267,7 +280,10 @@ export default function ReportsPage() {
         .dot { width: 10px; height: 10px; border-radius: 2px; }
         .dot.s1 { background: #00BFFF; }
         .dot.s2 { background: #4CAF50; }
-        .dot.s3 { background: #FF9800; }
+        .dot.s-res { background: #9C27B0; }
+        .dot.s-cabina { background: #FF9800; }
+        .dot.s-auditorio { background: #009688; }
+        .dot.s-sala { background: #607D8B; }
       `}</style>
     </div>
   );
