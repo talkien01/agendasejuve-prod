@@ -1,8 +1,32 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { getSession, hasRole } from '@/lib/auth';
 
-export async function GET() {
+async function isAuthenticated(req) {
+  try {
+    const session = await getSession();
+    return session ? session : false;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function GET(req) {
+  const user = await isAuthenticated(req);
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  const role = user.role;
+  if (!hasRole(user, ['ADMIN', 'PSICOLOGIA', 'RECURSOS'])) {
+    return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
+  }
+
+  let resourceWhere = {};
+  if (role === 'PSICOLOGIA') {
+    resourceWhere.type = 'Consultorio';
+  } else if (role === 'RECURSOS') {
+    resourceWhere.type = { not: 'Consultorio' };
+  }
+
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -12,8 +36,8 @@ export async function GET() {
     const [totalPatients, totalResources, activeResources, todayAppointments, upcomingAppointments] =
       await Promise.all([
         prisma.patient.count(),
-        prisma.resource.count(),
-        prisma.resource.count({ where: { status: 'Activo' } }),
+        prisma.resource.count({ where: resourceWhere }),
+        prisma.resource.count({ where: { ...resourceWhere, status: 'Activo' } }),
         prisma.appointment.count({
           where: { date: { gte: today, lt: tomorrow } },
         }),
@@ -25,7 +49,10 @@ export async function GET() {
         }),
       ]);
 
-    const resources = await prisma.resource.findMany({ orderBy: { name: 'asc' } });
+    const resources = await prisma.resource.findMany({ 
+      where: resourceWhere,
+      orderBy: { name: 'asc' } 
+    });
 
     return NextResponse.json({
       stats: {

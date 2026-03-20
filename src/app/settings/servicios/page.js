@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Loader2 } from 'lucide-react';
+import './../settings-crud.css';
 
 export default function ServiciosPage() {
   const [servicios, setServicios] = useState([]);
@@ -89,16 +90,18 @@ export default function ServiciosPage() {
   };
 
   return (
-    <div className="settings-section relative-container">
+    <div className="settings-section">
       <div className="crud-header">
         <h2>Servicios</h2>
         <button className="btn-primary" onClick={openNewModal} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plus size={16} /> Nuevo Servicio
+          <Plus size={18} /> Nuevo Servicio
         </button>
       </div>
 
       {loading ? (
-        <p>Cargando servicios...</p>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+          <Loader2 className="animate-spin" size={24} color="#0070f3" />
+        </div>
       ) : (
         <div className="table-container">
           <table className="data-table">
@@ -114,15 +117,17 @@ export default function ServiciosPage() {
             <tbody>
               {servicios.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', color: '#666' }}>No hay servicios registrados.</td>
+                  <td colSpan="5" style={{ textAlign: 'center', color: '#666', padding: '40px' }}>No hay servicios registrados.</td>
                 </tr>
               ) : (
                 servicios.map((service) => (
                   <tr key={service.id}>
-                    <td style={{ fontWeight: '500' }}>{service.name}</td>
+                    <td style={{ fontWeight: '600' }}>{service.name}</td>
                     <td>{service.category || 'General'}</td>
                     <td>{service.duration} min</td>
-                    <td>{formatCurrency(service.price)}</td>
+                    <td style={{ fontWeight: '500', color: service.price === 0 ? '#2E7D32' : 'inherit' }}>
+                      {formatCurrency(service.price)}
+                    </td>
                     <td>
                       <button className="action-btn" title="Editar" onClick={() => openEditModal(service)}><Edit2 size={16} /></button>
                       <button className="action-btn danger" title="Eliminar" onClick={() => handleDelete(service.id)}><Trash2 size={16} /></button>
@@ -153,11 +158,11 @@ export default function ServiciosPage() {
               </div>
               <div className="form-group">
                 <label>Duración (Minutos)</label>
-                <input type="number" required min="1" value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} />
+                <input type="number" required min="1" value={formData.duration} onChange={e => setFormData({...formData, duration: parseInt(e.target.value) || 0})} />
               </div>
               <div className="form-group">
                 <label>Precio (0 para Gratis)</label>
-                <input type="number" required min="0" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
+                <input type="number" required min="0" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value) || 0})} />
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn-outline" onClick={() => setIsModalOpen(false)}>Cancelar</button>
@@ -171,64 +176,12 @@ export default function ServiciosPage() {
       )}
 
       <style jsx>{`
-        .relative-container {
-          position: relative;
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
-        .modal-overlay {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 2000;
-        }
-        .modal-content {
-          background: white;
-          width: 100%;
-          max-width: 500px;
-          border-radius: 12px;
-          padding: 24px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        .modal-header h3 {
-          margin: 0;
-          font-size: 18px;
-        }
-        .close-btn {
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: #666;
-        }
-        .modal-footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 12px;
-          margin-top: 24px;
-        }
-        .form-group {
-          margin-bottom: 16px;
-        }
-        .form-group label {
-          display: block;
-          margin-bottom: 6px;
-          font-size: 13px;
-          font-weight: 500;
-          color: #444;
-        }
-        .form-group input, .form-group select {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          font-size: 14px;
+        .animate-spin {
+          animation: spin 1s linear infinite;
         }
       `}</style>
     </div>

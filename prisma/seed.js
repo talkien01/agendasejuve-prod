@@ -95,22 +95,32 @@ async function main() {
     create: { key: 'app_name', value: 'SEJUVE Citas' },
   });
 
-  // 6. Create Default User
+  // 6. Create Default Users
   const adminEmail = 'admin@sejuve.com';
-  const adminPasswordHash = await require('bcryptjs').hash('admin123', 10);
+  const psicEmail = 'psicologia@sejuve.com';
+  const recEmail = 'recursos@sejuve.com';
+  const defaultPassword = 'admin123';
+  const passwordHash = await require('bcryptjs').hash(defaultPassword, 10);
   
+  // Admin
   await prisma.user.upsert({
     where: { email: adminEmail },
-    update: {
-      password: adminPasswordHash,
-      name: 'Jose Luis',
-    },
-    create: {
-      email: adminEmail,
-      password: adminPasswordHash,
-      name: 'Jose Luis',
-      role: 'ADMIN',
-    },
+    update: { password: passwordHash, name: 'Jose Luis Admin' },
+    create: { email: adminEmail, password: passwordHash, name: 'Jose Luis Admin', role: 'ADMIN' },
+  });
+
+  // Psicología
+  await prisma.user.upsert({
+    where: { email: psicEmail },
+    update: { password: passwordHash, name: 'Area Psicología' },
+    create: { email: psicEmail, password: passwordHash, name: 'Area Psicología', role: 'PSICOLOGIA' },
+  });
+
+  // Recursos
+  await prisma.user.upsert({
+    where: { email: recEmail },
+    update: { password: passwordHash, name: 'Area Recursos' },
+    create: { email: recEmail, password: passwordHash, name: 'Area Recursos', role: 'RECURSOS' },
   });
 
   console.log('Seeding finished.');

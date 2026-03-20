@@ -17,13 +17,18 @@ export async function GET(req) {
   if (!hasRole(user, ['ADMIN'])) return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
 
   try {
-    const services = await prisma.service.findMany({
+    const resources = await prisma.resource.findMany({
+      include: {
+        local: {
+          select: { name: true }
+        }
+      },
       orderBy: { createdAt: 'desc' }
     });
-    return NextResponse.json({ services });
+    return NextResponse.json({ resources });
   } catch (error) {
-    console.error('Error fetching services:', error);
-    return NextResponse.json({ error: 'Error al obtener servicios' }, { status: 500 });
+    console.error('Error fetching resources:', error);
+    return NextResponse.json({ error: 'Error al obtener recursos' }, { status: 500 });
   }
 }
 
@@ -34,17 +39,18 @@ export async function POST(req) {
 
   try {
     const data = await req.json();
-    const newService = await prisma.service.create({
+    const newResource = await prisma.resource.create({
       data: {
         name: data.name,
-        duration: parseInt(data.duration, 10) || 60,
-        price: parseFloat(data.price) || 0,
-        category: data.category || 'General',
+        type: data.type,
+        localId: data.localId || null,
+        status: data.status || 'Activo',
+        services: data.services || '',
       }
     });
-    return NextResponse.json({ service: newService }, { status: 201 });
+    return NextResponse.json({ resource: newResource }, { status: 201 });
   } catch (error) {
-    console.error('Error creating service:', error);
-    return NextResponse.json({ error: 'Error al crear el servicio' }, { status: 500 });
+    console.error('Error creating resource:', error);
+    return NextResponse.json({ error: 'Error al crear el recurso' }, { status: 500 });
   }
 }

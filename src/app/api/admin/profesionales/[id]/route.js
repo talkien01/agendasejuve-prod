@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, hasRole } from '@/lib/auth';
 
 async function isAuthenticated(req) {
   try {

@@ -38,3 +38,14 @@ export async function getSession() {
   if (!session) return null;
   return await decrypt(session);
 }
+
+/**
+ * Helper to check if the current session has one of the allowed roles.
+ * @param {Object} session - The session object from getSession()
+ * @param {Array<string>} allowedRoles - List of roles permitted (e.g. ['ADMIN', 'PSICOLOGIA'])
+ * @returns {boolean}
+ */
+export function hasRole(session, allowedRoles) {
+  if (!session || !session.role) return false;
+  return allowedRoles.includes(session.role);
+}

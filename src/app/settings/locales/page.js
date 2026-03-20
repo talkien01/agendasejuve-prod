@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
-
+import { Plus, Edit2, Trash2, X, Loader2 } from 'lucide-react';
+import './../settings-crud.css';
 
 export default function LocalesPage() {
   const [locales, setLocales] = useState([]);
@@ -79,16 +79,18 @@ export default function LocalesPage() {
   };
 
   return (
-    <div className="settings-section relative-container">
+    <div className="settings-section">
       <div className="crud-header">
         <h2>Sucursales (Locales)</h2>
         <button className="btn-primary" onClick={openNewModal} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plus size={16} /> Nueva Sucursal
+          <Plus size={18} /> Nueva Sucursal
         </button>
       </div>
 
       {loading ? (
-        <p>Cargando locales...</p>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+          <Loader2 className="animate-spin" size={24} color="#0070f3" />
+        </div>
       ) : (
         <div className="table-container">
           <table className="data-table">
@@ -104,12 +106,12 @@ export default function LocalesPage() {
             <tbody>
               {locales.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', color: '#666' }}>No hay sucursales registradas.</td>
+                  <td colSpan="5" style={{ textAlign: 'center', color: '#666', padding: '40px' }}>No hay sucursales registradas.</td>
                 </tr>
               ) : (
                 locales.map((local) => (
                   <tr key={local.id}>
-                    <td style={{ fontWeight: '500' }}>{local.name}</td>
+                    <td style={{ fontWeight: '600' }}>{local.name}</td>
                     <td>{local.address || '-'}</td>
                     <td>{local.phone || '-'}</td>
                     <td>
@@ -168,79 +170,12 @@ export default function LocalesPage() {
       )}
 
       <style jsx>{`
-        .status-badge {
-          display: inline-block;
-          padding: 4px 8px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 500;
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
-        .status-badge.active {
-          background-color: #e6f4ea;
-          color: #1e8e3e;
-        }
-        .status-badge.inactive {
-          background-color: #fce8e6;
-          color: #d93025;
-        }
-        .relative-container {
-          position: relative;
-        }
-        .modal-overlay {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 2000;
-        }
-        .modal-content {
-          background: white;
-          width: 100%;
-          max-width: 500px;
-          border-radius: 12px;
-          padding: 24px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        .modal-header h3 {
-          margin: 0;
-          font-size: 18px;
-        }
-        .close-btn {
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: #666;
-        }
-        .modal-footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 12px;
-          margin-top: 24px;
-        }
-        .form-group {
-          margin-bottom: 16px;
-        }
-        .form-group label {
-          display: block;
-          margin-bottom: 6px;
-          font-size: 13px;
-          font-weight: 500;
-          color: #444;
-        }
-        .form-group input, .form-group select {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          font-size: 14px;
+        .animate-spin {
+          animation: spin 1s linear infinite;
         }
       `}</style>
     </div>

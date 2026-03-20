@@ -19,14 +19,20 @@ export default function ReservarPage() {
   });
 
   // Step 3 state
-  const today = startOfToday();
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [today, setToday] = useState(null);
+  
+  useEffect(() => {
+    const now = startOfToday();
+    setToday(now);
+    setSelectedDate(now);
+  }, []);
   
   // Generate next 14 absolute days, filter out weekends, and take the first 10 working days
-  const availableDates = Array.from({ length: 21 }) // Generate enough buffer
+  const availableDates = today ? Array.from({ length: 21 }) // Generate enough buffer
     .map((_, i) => addDays(today, i))
     .filter(date => !isWeekend(date))
-    .slice(0, 14); // Keep next 14 working days
+    .slice(0, 14) : []; // Keep next 14 working days
 
   const availableTimes = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
@@ -78,7 +84,7 @@ export default function ReservarPage() {
           <div className="landing-grid">
             {/* Information Card (Left Side) */}
             <div className="info-area">
-              <div className="cover-image"></div>
+              <div className="cover-image" style={{ backgroundImage: 'url("/hero-reservar.png")', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
               <div className="brand-info">
                 <div className="brand-logo">
                   <img src="/logo-sejuve.png" alt="Ser Sejuve Logo" style={{ width: '120px', objectFit: 'contain', display: 'block' }} />
@@ -92,7 +98,7 @@ export default function ReservarPage() {
 
             {/* Location Card (Right Side) */}
             <div className="location-card">
-              <div className="static-map">M A P A</div>
+              <div className="static-map" style={{ backgroundImage: 'url("/map-placeholder.png")', backgroundSize: 'cover', backgroundPosition: 'center', color: 'transparent' }}>M A P A</div>
               <div className="location-details">
                 <div className="location-item">
                   <MapPin size={16} />
@@ -145,7 +151,7 @@ export default function ReservarPage() {
                       <div className="service-info">
                         <h4>{service.name}</h4>
                         <p>{service.duration} min</p>
-                        <span>{service.price === 0 ? 'Gratis' : `$${service.price}`}</span>
+                        <span>{service.price === 0 ? 'SIN COSTO' : `$${service.price}`}</span>
                       </div>
                       <ChevronRight size={20} className="text-gray-400" />
                     </div>
@@ -207,7 +213,7 @@ export default function ReservarPage() {
               
               <div className="date-picker-container">
                 <div className="month-label">
-                  <CalendarIcon size={16} /> {format(selectedDate, 'MMMM yyyy', { locale: es }).toUpperCase()}
+                  <CalendarIcon size={16} /> {selectedDate ? format(selectedDate, 'MMMM yyyy', { locale: es }).toUpperCase() : ''}
                 </div>
                 <div className="days-scroll">
                   {availableDates.map(date => {
@@ -264,7 +270,7 @@ export default function ReservarPage() {
                   <strong>Hora:</strong> {booking.time}
                 </div>
                 <div className="summary-item">
-                  <strong>Costo:</strong> {selectedService?.price === 0 ? 'Gratis' : `$${selectedService?.price}`}
+                  <strong>Costo:</strong> {selectedService?.price === 0 ? 'SIN COSTO' : `$${selectedService?.price}`}
                 </div>
               </div>
 
@@ -314,9 +320,13 @@ export default function ReservarPage() {
         }
 
         .landing-header {
-          background-color: white;
-          border-bottom: 1px solid #eaeaea;
+          background-color: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
           padding: 16px 0;
+          position: sticky;
+          top: 0;
+          z-index: 100;
         }
 
         .header-content {
@@ -341,39 +351,48 @@ export default function ReservarPage() {
         }
 
         .landing-main {
-          max-width: 1200px;
-          margin: 40px auto;
+          max-width: 1100px;
+          margin: 60px auto;
           padding: 0 24px;
         }
 
         .landing-grid {
           display: grid;
-          grid-template-columns: 2fr 1fr;
-          gap: 24px;
-          margin-bottom: 40px;
+          grid-template-columns: 1.6fr 1fr;
+          gap: 32px;
+          margin-bottom: 60px;
         }
 
         .info-area {
           background: white;
-          border-radius: 12px;
+          border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+          border: 1px solid #f0f0f0;
         }
 
         .cover-image {
-          height: 300px;
-          background: linear-gradient(135deg, #e0eafc, #cfdef3);
+          height: 380px;
+          background-color: #f1f3f5;
         }
 
         .brand-info {
           display: flex;
-          padding: 24px;
-          gap: 24px;
+          padding: 32px;
+          gap: 32px;
+          align-items: center;
         }
 
         .brand-logo {
           font-size: 24px;
           line-height: 1.1;
+        }
+        
+        .brand-logo img {
+          border-radius: 12px;
+          padding: 8px;
+          background: #fcfcfc;
+          border: 1px solid #eee;
         }
 
         .text-primary { color: #00bfff; }
@@ -381,193 +400,254 @@ export default function ReservarPage() {
         .font-bold { font-weight: bold; }
 
         .brand-details h2 {
-          font-size: 24px;
-          color: #333;
-          margin-bottom: 8px;
+          font-size: 28px;
+          font-weight: 800;
+          color: #1a1a1a;
+          margin-bottom: 12px;
+          letter-spacing: -0.5px;
         }
 
         .brand-details p {
           color: #666;
-          font-size: 14px;
+          font-size: 16px;
+          line-height: 1.6;
+          max-width: 500px;
         }
 
         .location-card {
           background: white;
-          border-radius: 12px;
+          border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+          border: 1px solid #f0f0f0;
+          display: flex;
+          flex-direction: column;
         }
 
         .static-map {
-          height: 150px;
-          background-color: #e5e3df;
+          height: 200px;
+          background-color: #f8f9fa;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #999;
           font-weight: bold;
           letter-spacing: 2px;
+          position: relative;
+        }
+
+        .static-map::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 40px;
+          background: linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0));
         }
 
         .location-details {
-          padding: 20px;
-          border-bottom: 1px solid #f0f0f0;
+          padding: 28px;
+          border-bottom: 1px solid #f5f5f5;
         }
 
         .location-item {
           display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          margin-bottom: 16px;
-          font-size: 13px;
-          color: #555;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 20px;
+          font-size: 14px;
+          color: #444;
+          font-weight: 500;
         }
 
         .location-item:last-child {
           margin-bottom: 0;
         }
 
+        .location-item :global(svg) {
+          color: #00BFFF;
+        }
+
         .success-text {
           color: #10b981;
-          font-weight: 500;
+          font-weight: 700;
         }
 
         .professionals-preview {
-          padding: 20px;
+          padding: 28px;
+          background: #fafafa;
         }
 
         .professionals-preview h3 {
-          font-size: 14px;
-          margin-bottom: 16px;
-          color: #333;
+          font-size: 15px;
+          font-weight: 700;
+          margin-bottom: 20px;
+          color: #1a1a1a;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
 
         .avatars {
           display: flex;
-          gap: 16px;
+          gap: 20px;
         }
 
         .avatar {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
 
         .avatar span {
-          width: 48px;
-          height: 48px;
-          background-color: #e0e0e0;
-          color: #555;
-          border-radius: 50%;
+          width: 56px;
+          height: 56px;
+          background: white;
+          color: #1a1a1a;
+          border-radius: 18px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: bold;
-          font-size: 18px;
+          font-weight: 800;
+          font-size: 20px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          border: 1px solid #eee;
         }
 
         .avatar small {
-          font-size: 12px;
+          font-size: 13px;
+          font-weight: 600;
           color: #666;
         }
 
         .wizard-container {
           background: white;
-          border-radius: 12px;
-          padding: 32px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          border-radius: 24px;
+          padding: 40px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+          border: 1px solid #f0f0f0;
         }
 
         .back-btn {
           display: flex;
           align-items: center;
-          gap: 8px;
-          color: #666;
+          gap: 10px;
+          color: #888;
           font-size: 14px;
-          margin-bottom: 24px;
+          font-weight: 600;
+          margin-bottom: 32px;
           cursor: pointer;
+          transition: color 0.2s;
         }
 
-        .section-header {
-          margin-bottom: 24px;
+        .back-btn:hover {
+          color: #1a1a1a;
         }
 
         .section-header h3 {
-          font-size: 20px;
-          color: #333;
-          margin-bottom: 4px;
+          font-size: 24px;
+          font-weight: 800;
+          color: #1a1a1a;
+          margin-bottom: 8px;
+          letter-spacing: -0.5px;
         }
 
         .section-header p {
           color: #666;
-          font-size: 14px;
+          font-size: 15px;
+          font-weight: 500;
         }
 
         .services-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-          gap: 16px;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
         }
 
         .service-card {
           background: white;
-          border: 1px solid #eaeaea;
-          border-radius: 8px;
-          padding: 20px;
+          border: 1px solid #f0f0f0;
+          border-radius: 16px;
+          padding: 24px;
           display: flex;
           justify-content: space-between;
           align-items: center;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
         }
 
         .service-card:hover {
-          border-color: #272c33;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          border-color: #00BFFF;
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0,191,255,0.08);
+        }
+
+        .service-info h4 {
+          font-size: 18px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin-bottom: 4px;
+        }
+
+        .service-info p {
+          font-size: 14px;
+          color: #777;
+          font-weight: 500;
+        }
+
+        .service-info span {
+          display: block;
+          margin-top: 12px;
+          font-weight: 800;
+          color: #00BFFF;
+          font-size: 16px;
         }
 
         .professionals-list {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 16px;
         }
 
         .pro-select-card {
           display: flex;
           align-items: center;
-          padding: 16px;
-          border: 1px solid #eaeaea;
-          border-radius: 8px;
+          padding: 20px;
+          border: 1px solid #f0f0f0;
+          border-radius: 20px;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          background: #fcfcfc;
         }
 
         .pro-select-card:hover {
-          border-color: #272c33;
-          background-color: #fcfcfc;
+          border-color: #00BFFF;
+          background-color: white;
+          transform: translateX(8px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.04);
         }
 
         .pro-avatar {
-          width: 48px;
-          height: 48px;
-          background-color: #f0f2f5;
-          border-radius: 50%;
+          width: 56px;
+          height: 56px;
+          background-color: white;
+          border-radius: 18px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: bold;
-          margin-right: 16px;
-          color: #272c33;
-        }
-
-        .pro-info {
-          flex: 1;
+          font-weight: 800;
+          margin-right: 20px;
+          color: #1a1a1a;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          border: 1px solid #eee;
+          font-size: 20px;
         }
 
         .pro-info h4 {
-          font-size: 16px;
-          margin-bottom: 2px;
+          font-size: 17px;
+          font-weight: 700;
+          color: #1a1a1a;
         }
 
         .pro-info p {
@@ -606,28 +686,32 @@ export default function ReservarPage() {
         }
 
         .day-card {
-          min-width: 64px;
-          height: 80px;
+          min-width: 72px;
+          height: 90px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 4px;
+          gap: 6px;
           background: white;
-          border: 1px solid #eaeaea;
-          border-radius: 12px;
+          border: 1px solid #f0f0f0;
+          border-radius: 16px;
           cursor: pointer;
           transition: all 0.2s;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
         .day-card.selected {
-          background-color: #272c33;
+          background-color: #00BFFF;
           color: white;
-          border-color: #272c33;
+          border-color: #00BFFF;
+          box-shadow: 0 8px 20px rgba(0,191,255,0.3);
+          transform: scale(1.05);
         }
 
         .day-card:hover:not(.selected) {
-          border-color: #ccc;
+          border-color: #00BFFF;
+          background-color: rgba(0,191,255,0.02);
         }
 
         .day-name {
@@ -657,19 +741,22 @@ export default function ReservarPage() {
 
         .time-btn {
           background: white;
-          border: 1px solid #eaeaea;
-          border-radius: 8px;
-          padding: 12px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #333;
+          border: 1px solid #f0f0f0;
+          border-radius: 12px;
+          padding: 14px;
+          font-size: 15px;
+          font-weight: 700;
+          color: #444;
           cursor: pointer;
           transition: all 0.2s;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.02);
         }
 
         .time-btn:hover {
-          border-color: #272c33;
-          background-color: #fcfcfc;
+          border-color: #00BFFF;
+          color: #00BFFF;
+          background-color: rgba(0,191,255,0.02);
+          transform: translateY(-2px);
         }
 
         .confirmation-section {
@@ -687,10 +774,14 @@ export default function ReservarPage() {
         .summary-item {
           display: flex;
           justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px dashed #e5e5e5;
-          font-size: 14px;
-          color: #444;
+          padding: 12px 0;
+          border-bottom: 1px solid #eee;
+          font-size: 15px;
+        }
+
+        .summary-item strong {
+          color: #666;
+          font-weight: 600;
         }
 
         .summary-item:last-child {
@@ -732,32 +823,39 @@ export default function ReservarPage() {
 
         .input-with-icon input {
           width: 100%;
-          padding: 12px 12px 12px 40px;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 14px;
+          padding: 14px 14px 14px 48px;
+          border: 1px solid #e0e0e0;
+          border-radius: 14px;
+          font-size: 15px;
+          font-weight: 500;
           outline: none;
-          transition: border-color 0.2s;
+          transition: all 0.2s;
+          background: #f9fafb;
         }
 
         .input-with-icon input:focus {
-          border-color: #272c33;
+          border-color: #00BFFF;
+          background: white;
+          box-shadow: 0 0 0 4px rgba(0,191,255,0.1);
         }
 
         .agendar-btn {
-          background-color: #272c33;
+          background: #00BFFF;
           color: white;
           border: none;
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
+          padding: 16px 32px;
+          border-radius: 16px;
+          font-size: 16px;
+          font-weight: 700;
           cursor: pointer;
-          transition: background-color 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 8px 24px rgba(0,191,255,0.2);
         }
 
         .agendar-btn:hover {
-          background-color: #1a1d22;
+          background: #00a0d9;
+          transform: translateY(-2px);
+          box-shadow: 0 12px 32px rgba(0,191,255,0.3);
         }
 
         .full-width {

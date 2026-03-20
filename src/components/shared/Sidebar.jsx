@@ -16,24 +16,35 @@ export default function Sidebar() {
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [locales, setLocales] = useState([]);
   const [professionals, setProfessionals] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [locRes, profRes] = await Promise.all([
+        const [locRes, profRes, meRes] = await Promise.all([
           fetch('/api/admin/locales'),
-          fetch('/api/professionals')
+          fetch('/api/professionals'),
+          fetch('/api/auth/me')
         ]);
         const locData = await locRes.json();
         const profData = await profRes.json();
+        const meData = await meRes.json();
+        
         setLocales(locData.locales || []);
         setProfessionals(Array.isArray(profData) ? profData : []);
+        const currentUser = meData.user || null;
+        setUser(currentUser);
+
+        // Auto-switch view if RECURSOS
+        if (currentUser?.role === 'RECURSOS' && viewMode !== 'resources') {
+          setViewMode('resources');
+        }
       } catch (err) {
         console.error('Error fetching sidebar data:', err);
       }
     }
     fetchData();
-  }, []);
+  }, [viewMode, setViewMode]);
 
   const monthStart = startOfMonth(calendarMonth);
   const monthEnd = endOfMonth(calendarMonth);
@@ -105,31 +116,35 @@ export default function Sidebar() {
           </select>
         </div>
 
-        <div className="filter-group">
-          <label>Ver agenda por</label>
-          <select 
-            className="filter-select-input" 
-            value={viewMode} 
-            onChange={(e) => setViewMode(e.target.value)}
-          >
-            <option value="professionals">Profesional</option>
-            <option value="resources">Recurso</option>
-          </select>
-        </div>
+        {user?.role !== 'RECURSOS' && (
+          <div className="filter-group">
+            <label>Ver agenda por</label>
+            <select 
+              className="filter-select-input" 
+              value={viewMode} 
+              onChange={(e) => setViewMode(e.target.value)}
+            >
+              <option value="professionals">Profesional</option>
+              <option value="resources">Recurso</option>
+            </select>
+          </div>
+        )}
 
-        <div className="filter-group">
-          <label>Profesional</label>
-          <select 
-            className="filter-select-input" 
-            value={professionalId} 
-            onChange={(e) => setProfessionalId(e.target.value)}
-          >
-            <option value="">Todos</option>
-            {professionals.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-        </div>
+        {viewMode === 'professionals' && user?.role !== 'RECURSOS' && (
+          <div className="filter-group">
+            <label>Profesional</label>
+            <select 
+              className="filter-select-input" 
+              value={professionalId} 
+              onChange={(e) => setProfessionalId(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {professionals.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="filter-group">
           <label>Estado de la reserva</label>

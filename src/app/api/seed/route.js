@@ -2,8 +2,25 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/db';
+import { getSession, hasRole } from '@/lib/auth';
 
-export async function GET() {
+async function isAuthenticated(req) {
+  try {
+    const session = await getSession();
+    return session ? session : false;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function GET(req) {
+  const user = await isAuthenticated(req);
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  if (!hasRole(user, ['ADMIN'])) {
+    return NextResponse.json({ error: 'Prohibido: Se requieren permisos de administrador para sembrar datos' }, { status: 403 });
+  }
+
   try {
     console.log('Start seeding via API...');
 

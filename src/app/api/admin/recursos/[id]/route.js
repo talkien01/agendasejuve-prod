@@ -14,37 +14,40 @@ async function isAuthenticated(req) {
 export async function PUT(req, { params }) {
   const user = await isAuthenticated(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  if (!hasRole(user, ['ADMIN'])) return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
 
   try {
     const { id } = await params;
     const data = await req.json();
     
-    const updated = await prisma.service.update({
+    const updated = await prisma.resource.update({
       where: { id },
       data: {
         name: data.name,
-        duration: parseInt(data.duration, 10) || 60,
-        price: parseFloat(data.price) || 0,
-        category: data.category || 'General',
+        type: data.type,
+        localId: data.localId || null,
+        status: data.status,
+        services: data.services,
       }
     });
-    return NextResponse.json({ service: updated });
+    return NextResponse.json({ resource: updated });
   } catch (error) {
-    console.error('Error updating service:', error);
-    return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });
+    console.error('Error updating resource:', error);
+    return NextResponse.json({ error: 'Error al actualizar el recurso' }, { status: 500 });
   }
 }
 
 export async function DELETE(req, { params }) {
   const user = await isAuthenticated(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  if (!hasRole(user, ['ADMIN'])) return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
 
   try {
     const { id } = await params;
-    await prisma.service.delete({ where: { id } });
+    await prisma.resource.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting service:', error);
-    return NextResponse.json({ error: 'Error al eliminar' }, { status: 500 });
+    console.error('Error deleting resource:', error);
+    return NextResponse.json({ error: 'Error al eliminar el recurso' }, { status: 500 });
   }
 }

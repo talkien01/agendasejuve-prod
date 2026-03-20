@@ -34,7 +34,7 @@ export default function Header() {
   const navLinks = [
     { name: 'Agenda', href: '/agenda' },
     { name: 'Ventas', href: '/ventas' },
-    { name: 'Pacientes', href: '/pacientes' },
+    { name: 'Usuarios', href: '/pacientes' },
     { name: 'Reportes', href: '/reportes' },
   ];
 

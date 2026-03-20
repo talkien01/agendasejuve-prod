@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, hasRole } from '@/lib/auth';
 
 async function isAuthenticated(req) {
   try {
@@ -14,6 +14,10 @@ async function isAuthenticated(req) {
 export async function PUT(req, { params }) {
   const user = await isAuthenticated(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  if (!hasRole(user, ['ADMIN'])) {
+    return NextResponse.json({ error: 'Prohibido: Se requieren permisos de administrador' }, { status: 403 });
+  }
 
   try {
     const { id } = await params;
@@ -38,6 +42,10 @@ export async function PUT(req, { params }) {
 export async function DELETE(req, { params }) {
   const user = await isAuthenticated(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  if (!hasRole(user, ['ADMIN'])) {
+    return NextResponse.json({ error: 'Prohibido: Se requieren permisos de administrador' }, { status: 403 });
+  }
 
   try {
     const { id } = await params;

@@ -1,0 +1,69 @@
+
+> agendass@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\Dell\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\Dell\.gemini\antigravity\scratch\agendapro-clone\package-lock.json
+
+▲ Next.js 16.1.7 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.7s
+  Running TypeScript ...
+  Collecting page data using 19 workers ...
+  Generating static pages using 19 workers (0/26) ...
+  Generating static pages using 19 workers (6/26) 
+  Generating static pages using 19 workers (12/26) 
+  Generating static pages using 19 workers (19/26) 
+✓ Generating static pages using 19 workers (26/26) in 264.3ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /agenda
+├ ƒ /api/admin/locales
+├ ƒ /api/admin/locales/[id]
+├ ƒ /api/admin/profesionales
+├ ƒ /api/admin/profesionales/[id]
+├ ƒ /api/admin/servicios
+├ ƒ /api/admin/servicios/[id]
+├ ƒ /api/appointments
+├ ƒ /api/appointments/[id]
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/me
+├ ƒ /api/booking-data
+├ ƒ /api/dashboard
+├ ƒ /api/diag
+├ ƒ /api/patients
+├ ƒ /api/patients/[id]
+├ ƒ /api/professionals
+├ ƒ /api/resources
+├ ƒ /api/resources/[id]
+├ ƒ /api/seed
+├ ƒ /api/user/change-password
+├ ○ /login
+├ ○ /pacientes
+├ ○ /recursos
+├ ○ /reportes
+├ ○ /reservar
+├ ○ /settings
+├ ○ /settings/locales
+├ ○ /settings/profesionales
+├ ○ /settings/seguridad
+├ ○ /settings/servicios
+└ ○ /ventas
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

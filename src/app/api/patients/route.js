@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import prisma from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, hasRole } from '@/lib/auth';
 
 async function isAuthenticated(req) {
   try {
@@ -15,6 +15,10 @@ async function isAuthenticated(req) {
 export async function GET(req) {
   const user = await isAuthenticated(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  
+  if (!hasRole(user, ['ADMIN', 'PSICOLOGIA', 'RECURSOS'])) {
+    return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
+  }
 
   try {
     const patients = await prisma.patient.findMany({
@@ -30,6 +34,10 @@ export async function GET(req) {
 export async function POST(req) {
   const user = await isAuthenticated(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  if (!hasRole(user, ['ADMIN', 'PSICOLOGIA'])) {
+    return NextResponse.json({ error: 'Prohibido: Solo ADMIN o PSICOLOGIA pueden crear pacientes' }, { status: 403 });
+  }
 
   try {
     const body = await req.json();

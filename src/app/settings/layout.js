@@ -26,6 +26,7 @@ export default function SettingsLayout({ children }) {
       { id: 'locales', name: 'Sucursales (Locales)', icon: Building2, path: '/settings/locales' },
       { id: 'profesionales', name: 'Profesionales', icon: Users, path: '/settings/profesionales' },
       { id: 'servicios', name: 'Servicios', icon: Box, path: '/settings/servicios' },
+      { id: 'recursos', name: 'Recursos', icon: Box, path: '/settings/recursos' },
     ]}
   ];
 
