@@ -24,7 +24,7 @@ export async function GET(req) {
     thirtyDaysAgo.setDate(now.getDate() - 30);
 
     // 1. KPIs
-    const [totalAppointments, attendedAppointments, cancelledAppointments, newBookings, newPatients] = await Promise.all([
+    const [totalAppointments, attendedAppointments, cancelledAppointments, newBookings, newPatients, repeatPatientsCount] = await Promise.all([
       prisma.appointment.count({
         where: { date: { gte: thirtyDaysAgo } }
       }),
@@ -39,12 +39,30 @@ export async function GET(req) {
       }),
       prisma.patient.count({
         where: { createdAt: { gte: thirtyDaysAgo } }
+      }),
+      // For retention: patients with more than 1 appointment (Total historical)
+      prisma.appointment.groupBy({
+        by: ['patientId'],
+        _count: { id: true },
+        having: { id: { _count: { gt: 1 } } }
       })
     ]);
+
+    // Alternative Revenue Calculation
+    const attendedWithPrice = await prisma.appointment.findMany({
+      where: { date: { gte: thirtyDaysAgo }, status: 'ASISTIDA' },
+      include: { service: true }
+    });
+    const totalRevenue = attendedWithPrice.reduce((sum, app) => sum + (app.service?.price || 0), 0);
 
     const activeAppointments = totalAppointments - cancelledAppointments;
     const attendanceRate = activeAppointments > 0 
       ? (attendedAppointments / activeAppointments * 100).toFixed(1) 
+      : 0;
+    
+    const totalPatients = await prisma.patient.count();
+    const retentionRate = totalPatients > 0 
+      ? (repeatPatientsCount.length / totalPatients * 100).toFixed(1)
       : 0;
 
     // 2. Bar Chart Data (Fixed: Jan to Jun of current year)
@@ -129,8 +147,9 @@ export async function GET(req) {
     return NextResponse.json({
       kpis: [
         { name: 'Asistencia', value: `${attendanceRate}%`, color: '#4CAF50' },
+        { name: 'Ingresos (30d)', value: `$${totalRevenue.toLocaleString()}`, color: '#FFD700' },
+        { name: 'Retención', value: `${retentionRate}%`, color: '#9C27B0' },
         { name: 'Reservas (30d)', value: newBookings.toString(), color: '#00BFFF' },
-        { name: 'Usuarios Nuevos', value: newPatients.toString(), color: '#E91E63' },
       ],
       monthlyBookings,
       serviceDist,

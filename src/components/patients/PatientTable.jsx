@@ -5,6 +5,7 @@ export default function PatientTable({
   patients, 
   onEdit, 
   onDelete,
+  onView,
   getStatusStyle 
 }) {
   if (loading) {
@@ -68,7 +69,7 @@ export default function PatientTable({
                 </td>
                 <td>
                   <div className="action-buttons">
-                    <button title="Ver" className="action-btn"><Eye size={16} /></button>
+                    <button title="Ver Historial" className="action-btn" onClick={() => onView(patient.id)}><Eye size={16} /></button>
                     <button title="Editar" className="action-btn" onClick={() => onEdit(patient)}><Edit2 size={16} /></button>
                     <button title="Eliminar" className="action-btn danger" onClick={() => onDelete(patient.id)}><Trash2 size={16} /></button>
                   </div>

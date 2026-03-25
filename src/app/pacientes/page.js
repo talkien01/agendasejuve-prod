@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -17,6 +18,7 @@ export default function PatientsPage() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
   
   // Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,6 +64,10 @@ export default function PatientsPage() {
       });
     }
     setIsModalOpen(true);
+  };
+  
+  const handleView = (id) => {
+    router.push(`/pacientes/${id}`);
   };
 
   const handleCloseModal = () => {
@@ -213,6 +219,7 @@ export default function PatientsPage() {
         patients={filteredPatients}
         onEdit={handleOpenModal}
         onDelete={handleDelete}
+        onView={handleView}
         getStatusStyle={getStatusStyle}
       />
 

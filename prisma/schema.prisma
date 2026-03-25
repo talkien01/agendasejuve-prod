@@ -38,7 +38,8 @@ model Patient {
   notifyEmail    Boolean     @default(true)
   notifyWhatsapp Boolean     @default(true)
   
-  appointments Appointment[]
+  appointments   Appointment[]
+  clinicalRecords ClinicalRecord[]
 }
 
 model Professional {
@@ -50,6 +51,7 @@ model Professional {
   local        Local?        @relation(fields: [localId], references: [id])
   localId      String?
   appointments Appointment[]
+  clinicalRecords ClinicalRecord[]
 }
 
 model Service {
@@ -104,6 +106,7 @@ model Appointment {
 
   reminderSent Boolean @default(false)
   notifications Notification[]
+  clinicalRecord ClinicalRecord?
 }
 
 model Config {
@@ -133,4 +136,23 @@ model Notification {
   
   appointmentId String?
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+}
+
+model ClinicalRecord {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  date            DateTime @default(now())
+  content         String   @db.Text
+  diagnosis       String?  @db.Text
+  treatment       String?  @db.Text
+  
+  patient         Patient  @relation(fields: [patientId], references: [id])
+  patientId       String
+  
+  professional    Professional? @relation(fields: [professionalId], references: [id])
+  professionalId  String?
+  
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id])
+  appointmentId   String?      @unique
 }
