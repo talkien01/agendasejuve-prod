@@ -79,6 +79,7 @@ export default function NotificationLogsPage() {
                 <th>Destinatario</th>
                 <th>Fecha/Hora</th>
                 <th>Cita ID</th>
+                <th>Error</th>
               </tr>
             </thead>
             <tbody>
@@ -99,6 +100,13 @@ export default function NotificationLogsPage() {
                   <td className="recipient-cell">{log.recipient}</td>
                   <td className="time-cell">{new Date(log.createdAt).toLocaleString()}</td>
                   <td className="id-cell">{log.appointmentId || '-'}</td>
+                  <td className="error-cell">
+                    {log.error ? (
+                      <span className="error-text" title={log.error}>
+                        {log.error.length > 50 ? `${log.error.substring(0, 50)}...` : log.error}
+                      </span>
+                    ) : '-'}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -210,6 +218,8 @@ export default function NotificationLogsPage() {
         .recipient-cell { font-weight: 500; font-family: monospace; }
         .time-cell { color: var(--text-secondary); font-size: 13px; }
         .id-cell { color: var(--text-secondary); font-size: 12px; }
+        .error-cell { max-width: 250px; }
+        .error-text { color: #dc2626; font-size: 11px; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .loading-state, .empty-state {
           padding: 60px;
