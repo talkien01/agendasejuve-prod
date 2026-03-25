@@ -210,7 +210,7 @@ export default function AgendaPage() {
         body: JSON.stringify({
           ...form,
           patientId: finalPatientId,
-          date: new Date(form.date).toISOString(),
+          date: form.date, // Pass raw string
           professionalId: form.professionalId || null,
           resourceId: form.resourceId || null,
           localId: branchId || null,

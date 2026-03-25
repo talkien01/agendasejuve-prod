@@ -14,9 +14,12 @@ export async function middleware(request) {
     pathname.startsWith('/api/auth/login') ||
     pathname.startsWith('/api/booking-data') ||
     pathname.startsWith('/api/diag') ||
+    pathname.startsWith('/api/investigate') ||
+    pathname.startsWith('/api/jobs') ||
+    pathname.startsWith('/api/reservar') ||
     pathname.startsWith('/api/seed') ||
     pathname.startsWith('/_next') ||
-    pathname.includes('/favicon.ico')
+    pathname.match(/\.(png|jpg|jpeg|svg|webp|gif|ico)$/i)
   ) {
     return NextResponse.next();
   }

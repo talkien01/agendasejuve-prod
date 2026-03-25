@@ -21,6 +21,7 @@ export default function ReservarPage() {
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
+  const [formError, setFormError] = useState(null);
 
   // Step 3 state
   const [selectedDate, setSelectedDate] = useState(null);
@@ -281,6 +282,7 @@ export default function ReservarPage() {
               <form className="user-form" onSubmit={async (e) => {
                 e.preventDefault();
                 setIsSubmitting(true);
+                setFormError(null);
                 try {
                   const res = await fetch('/api/reservar', {
                     method: 'POST',
@@ -296,16 +298,26 @@ export default function ReservarPage() {
                     setBookingResult(result.appointment);
                     setStep(5);
                   } else {
-                    const err = await res.json();
-                    alert(err.error || 'Error al crear la reserva');
+                    let errData;
+                    try {
+                      errData = await res.json();
+                    } catch {
+                      errData = { error: 'Ocurrió un error inesperado en el servidor.' };
+                    }
+                    setFormError(errData.error || 'Error al crear la reserva');
                   }
                 } catch (err) {
                   console.error(err);
-                  alert('Error de conexión. Intente más tarde.');
+                  setFormError('Error de conexión. Intente más tarde.');
                 } finally {
                   setIsSubmitting(false);
                 }
               }}>
+                {formError && (
+                  <div style={{ padding: '12px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', textAlign: 'center' }}>
+                    {formError}
+                  </div>
+                )}
                 <div className="form-group">
                   <label>Nombre completo</label>
                   <div className="input-with-icon">

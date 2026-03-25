@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getSession, hasRole } from '@/lib/auth';
 import { startOfMonth, endOfMonth, subMonths, format, startOfDay, endOfDay } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 async function isAuthenticated(req) {
   try {
@@ -46,17 +47,19 @@ export async function GET(req) {
       ? (attendedAppointments / activeAppointments * 100).toFixed(1) 
       : 0;
 
-    // 2. Bar Chart Data (Monthly bookings Jan to Jun of current year)
+    // 2. Bar Chart Data (Fixed: Jan to Jun of current year)
     const monthlyBookings = [];
-    const yearStart = new Date(now.getFullYear(), 0, 1); // Jan 1st
+    const currentYear = now.getFullYear();
     for (let i = 0; i < 6; i++) {
-      const monthStart = startOfMonth(new Date(now.getFullYear(), i, 1));
-      const monthEnd = endOfMonth(new Date(now.getFullYear(), i, 1));
+      const monthStart = startOfMonth(new Date(currentYear, i, 1));
+      const monthEnd = endOfMonth(new Date(currentYear, i, 1));
+      
       const count = await prisma.appointment.count({
         where: { date: { gte: monthStart, lte: monthEnd } }
       });
+      
       monthlyBookings.push({
-        label: format(monthStart, 'MMM'),
+        label: format(monthStart, 'MMM', { locale: es }).replace('.', '').toUpperCase(),
         value: count
       });
     }
@@ -75,12 +78,13 @@ export async function GET(req) {
       if (app.type === 'RESOURCE') {
         reservasCount++;
       } else if (app.type === 'PROFESSIONAL' && app.service) {
-        if (app.service.category?.toLowerCase().includes('consulta')) {
+        const category = app.service.category?.toLowerCase() || '';
+        const name = app.service.name?.toLowerCase() || '';
+        if (category.includes('consulta') || name.includes('consulta') || name.includes('valoración')) {
           consultaCount++;
-        } else if (app.service.category?.toLowerCase().includes('terapia')) {
+        } else if (category.includes('terapia') || name.includes('terapia')) {
           terapiaCount++;
         } else {
-          // Default to consulta if category doesn't strictly match but it's professional
           consultaCount++;
         }
       } else {
@@ -88,11 +92,10 @@ export async function GET(req) {
       }
     });
 
-    const totalDist = consultaCount + terapiaCount + reservasCount;
     const serviceDist = [
-      { name: 'Consulta', value: totalDist > 0 ? Math.round((consultaCount / totalDist) * 100) : 0 },
-      { name: 'Terapia', value: totalDist > 0 ? Math.round((terapiaCount / totalDist) * 100) : 0 },
-      { name: 'Reservas', value: totalDist > 0 ? Math.round((reservasCount / totalDist) * 100) : 0 },
+      { name: 'Consulta', value: consultaCount },
+      { name: 'Terapia', value: terapiaCount },
+      { name: 'Reservas', value: reservasCount },
     ];
 
     // 4. Space Reservation (Reservas) Distribution
@@ -104,6 +107,7 @@ export async function GET(req) {
     let cabinaCount = 0;
     let auditorioCount = 0;
     let salaCount = 0;
+    let consultorioCount = 0;
 
     resourceAppointments.forEach(app => {
       if (app.resource) {
@@ -111,21 +115,22 @@ export async function GET(req) {
         if (type?.includes('cabina')) cabinaCount++;
         else if (type?.includes('auditorio')) auditorioCount++;
         else if (type?.includes('sala')) salaCount++;
+        else if (type?.includes('consultorio')) consultorioCount++;
       }
     });
 
-    const totalSpace = cabinaCount + auditorioCount + salaCount;
     const spaceDist = [
-      { name: 'Cabinas', value: totalSpace > 0 ? Math.round((cabinaCount / totalSpace) * 100) : 0 },
-      { name: 'Auditorio', value: totalSpace > 0 ? Math.round((auditorioCount / totalSpace) * 100) : 0 },
-      { name: 'Salas de Juntas', value: totalSpace > 0 ? Math.round((salaCount / totalSpace) * 100) : 0 },
+      { name: 'Cabinas', value: cabinaCount },
+      { name: 'Auditorio', value: auditorioCount },
+      { name: 'Salas', value: salaCount },
+      { name: 'Consultorios', value: consultorioCount },
     ];
 
     return NextResponse.json({
       kpis: [
-        { name: 'Tasa de Asistencia', value: `${attendanceRate}%`, color: '#4CAF50' },
-        { name: 'Reservas Nuevas', value: newBookings.toString(), color: '#00BFFF' },
-        { name: 'Nuevos Pacientes', value: newPatients.toString(), color: '#E91E63' },
+        { name: 'Asistencia', value: `${attendanceRate}%`, color: '#4CAF50' },
+        { name: 'Reservas (30d)', value: newBookings.toString(), color: '#00BFFF' },
+        { name: 'Usuarios Nuevos', value: newPatients.toString(), color: '#E91E63' },
       ],
       monthlyBookings,
       serviceDist,

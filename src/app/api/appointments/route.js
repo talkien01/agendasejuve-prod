@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getSession, hasRole } from '@/lib/auth';
+import { sendAppointmentConfirmation } from '@/lib/notifications';
 
 export async function GET(request) {
   try {
@@ -33,10 +34,9 @@ export async function GET(request) {
     }
 
     if (dateStr) {
-      const date = new Date(dateStr);
-      date.setHours(0, 0, 0, 0);
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const date = new Date(year, month - 1, day, 0, 0, 0);
+      const nextDay = new Date(year, month - 1, day + 1, 0, 0, 0);
       where.date = { gte: date, lt: nextDay };
     }
 
@@ -77,6 +77,7 @@ export async function POST(request) {
   try {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    const body = await request.json();
     const role = session.role;
 
     // RBAC: Creation guards
@@ -97,9 +98,12 @@ export async function POST(request) {
       }
     }
 
+    const [y, m, d] = body.date.split('-').map(Number);
+    const localDate = new Date(y, m - 1, d, 0, 0, 0);
+
     const appointment = await prisma.appointment.create({
       data: {
-        date: new Date(body.date),
+        date: localDate,
         startTime: body.startTime,
         endTime: body.endTime,
         type: body.type,
@@ -116,6 +120,12 @@ export async function POST(request) {
         professional: true,
       }
     });
+
+    // Trigger notification asynchronously
+    sendAppointmentConfirmation(appointment.id).catch(err => {
+      console.error('Error triggering notification:', err);
+    });
+
     return NextResponse.json(appointment);
   } catch (error) {
     console.error('Create appointment error:', error);

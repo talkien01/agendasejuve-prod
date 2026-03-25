@@ -34,6 +34,10 @@ model Patient {
   phone        String?
   identifier   String?       @unique // E.g., CURP
   status       String        @default("Activo") // Activo, Inactivo, Pendiente
+  
+  notifyEmail    Boolean     @default(true)
+  notifyWhatsapp Boolean     @default(true)
+  
   appointments Appointment[]
 }
 
@@ -97,6 +101,9 @@ model Appointment {
 
   local       Local?   @relation(fields: [localId], references: [id])
   localId     String?
+
+  reminderSent Boolean @default(false)
+  notifications Notification[]
 }
 
 model Config {
@@ -113,4 +120,17 @@ model User {
   role      String   @default("ADMIN") // ADMIN, USER
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  type          String   // WHATSAPP, EMAIL
+  status        String   // SENT, FAILED, PENDING
+  recipient     String   // Email or Phone number
+  content       String?  @default("")
+  error         String?
+  
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
 }

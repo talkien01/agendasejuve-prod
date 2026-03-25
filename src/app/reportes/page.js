@@ -2,7 +2,7 @@
 
 import { 
   BarChart3, 
-  PieChart, 
+  PieChart as LucidePieChart, 
   TrendingUp, 
   Calendar, 
   Users, 
@@ -13,6 +13,21 @@ import {
 } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell 
+} from 'recharts';
+
+const COLORS = ['#00BFFF', '#4CAF50', '#9C27B0', '#FF9800', '#009688', '#607D8B'];
 
 export default function ReportsPage() {
   const [data, setData] = useState(null);
@@ -46,17 +61,6 @@ export default function ReportsPage() {
 
   const { kpis, monthlyBookings, serviceDist, spaceDist } = data;
 
-  // Helper to generate conic gradient from distribution
-  const getGradient = (dist, colors) => {
-    let current = 0;
-    const parts = dist.map((item, i) => {
-      const start = current;
-      current += item.value;
-      return `${colors[i]} ${start}% ${current}%`;
-    }).join(', ');
-    return `conic-gradient(${parts})`;
-  };
-
   const handleDownload = () => {
     try {
       if (!data) return;
@@ -83,18 +87,23 @@ export default function ReportsPage() {
       link.href = url;
       link.setAttribute("download", `reporte_sejuve_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
-      console.log("Simulando clic en enlace de descarga...");
       link.click();
       
       setTimeout(() => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        console.log("Limpieza de URL de descarga completada.");
       }, 500);
     } catch (err) {
       console.error("Error al descargar reporte:", err);
       alert("No se pudo descargar el reporte. Intente de nuevo.");
     }
+  };
+
+  const getKpiGradient = (name) => {
+    if (name.includes('Asistencia')) return 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+    if (name.includes('Reservas')) return 'linear-gradient(135deg, #00BFFF 0%, #4facfe 100%)';
+    if (name.includes('Usuarios')) return 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+    return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   };
 
   return (
@@ -119,13 +128,16 @@ export default function ReportsPage() {
 
       <div className="kpi-grid">
         {kpis.map((kpi) => (
-          <div key={kpi.name} className="card kpi-card">
-            <span className="kpi-name">{kpi.name}</span>
+          <div key={kpi.name} className="card kpi-card-glass" style={{ borderLeft: `4px solid ${kpi.color}` }}>
+            <div className="kpi-header">
+              <span className="kpi-name">{kpi.name}</span>
+              <TrendingUp size={16} color={kpi.color} />
+            </div>
             <div className="kpi-body">
               <span className="kpi-value">{kpi.value}</span>
             </div>
-            <div className="kpi-progress-bg">
-              <div className="kpi-progress-bar" style={{ width: '100%', backgroundColor: kpi.color }}></div>
+            <div className="kpi-visual">
+               <div className="kpi-gradient-bar" style={{ background: getKpiGradient(kpi.name) }}></div>
             </div>
           </div>
         ))}
@@ -137,18 +149,43 @@ export default function ReportsPage() {
             <h3>Reservas Mensuales (Semestre Actual)</h3>
           </div>
           <div className="chart-container">
-            <div className="bar-chart-sim">
-              {monthlyBookings.map((m, i) => {
-                const maxVal = Math.max(...monthlyBookings.map(x => x.value), 1);
-                const height = (m.value / maxVal) * 100;
-                return (
-                  <div key={i} className="bar-group">
-                    <div className="bar" style={{ height: `${height}%` }} title={`${m.label}: ${m.value}`}></div>
-                    <span className="bar-label">{m.label}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyBookings} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00BFFF" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#0070f3" stopOpacity={0.2}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis 
+                  dataKey="label" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 12, fontWeight: 600, fill: '#666' }} 
+                />
+                <YAxis hide />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                  contentStyle={{ 
+                    borderRadius: '16px', 
+                    border: '1px solid rgba(255,255,255,0.5)', 
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(8px)',
+                    padding: '12px'
+                  }}
+                  itemStyle={{ fontWeight: 700, color: '#333' }}
+                />
+                <Bar 
+                  dataKey="value" 
+                  fill="url(#barGradient)" 
+                  radius={[10, 10, 0, 0]} 
+                  barSize={40} 
+                  animationDuration={1500}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
@@ -158,18 +195,35 @@ export default function ReportsPage() {
           <div className="card-header">
             <h3>Distribución de Servicios</h3>
           </div>
-          <div className="chart-container pie-layout">
-            <div className="pie-chart-sim" style={{ background: getGradient(serviceDist, ['#00BFFF', '#4CAF50', '#9C27B0']) }}>
-              <div className="pie-center"></div>
-            </div>
-            <div className="chart-legend">
-              {serviceDist.map((item, i) => (
-                <div key={item.name} className="legend-item">
-                  <span className="dot" style={{ backgroundColor: ['#00BFFF', '#4CAF50', '#9C27B0'][i] }}></span>
-                  <span>{item.name} ({item.value}%)</span>
-                </div>
-              ))}
-            </div>
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={serviceDist}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                  animationDuration={1000}
+                >
+                  {serviceDist.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(255,255,255,0.5)" strokeWidth={2} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: '16px', 
+                    border: '1px solid rgba(255,255,255,0.5)', 
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(8px)'
+                  }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -177,18 +231,35 @@ export default function ReportsPage() {
           <div className="card-header">
             <h3>Distribución de Espacios</h3>
           </div>
-          <div className="chart-container pie-layout">
-            <div className="pie-chart-sim" style={{ background: getGradient(spaceDist, ['#FF9800', '#009688', '#607D8B']) }}>
-              <div className="pie-center"></div>
-            </div>
-            <div className="chart-legend">
-              {spaceDist.map((item, i) => (
-                <div key={item.name} className="legend-item">
-                  <span className="dot" style={{ backgroundColor: ['#FF9800', '#009688', '#607D8B'][i] }}></span>
-                  <span>{item.name} ({item.value}%)</span>
-                </div>
-              ))}
-            </div>
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={spaceDist}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                  animationDuration={1000}
+                >
+                  {spaceDist.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[(index + 3) % COLORS.length]} stroke="rgba(255,255,255,0.5)" strokeWidth={2} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: '16px', 
+                    border: '1px solid rgba(255,255,255,0.5)', 
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(8px)'
+                  }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
@@ -197,14 +268,33 @@ export default function ReportsPage() {
         .reports-container {
           display: flex;
           flex-direction: column;
-          gap: 20px;
-          padding-bottom: 20px;
+          gap: 24px;
+          padding-bottom: 40px;
+          animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         .page-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          margin-bottom: 10px;
+        }
+
+        .header-info h1 {
+          font-size: 28px;
+          font-weight: 800;
+          color: var(--text-main);
+          letter-spacing: -0.5px;
+        }
+
+        .header-info p {
+          color: var(--text-secondary);
+          margin-top: 4px;
         }
 
         .header-actions {
@@ -212,76 +302,147 @@ export default function ReportsPage() {
           gap: 12px;
         }
 
-        .period-picker {
+        .btn-outline {
           display: flex;
           align-items: center;
           gap: 8px;
-          padding: 8px 16px;
+          padding: 10px 20px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(8px);
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
+          font-weight: 600;
+          color: var(--text-main);
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .btn-outline:hover {
+          background: white;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+          border-color: var(--brand-primary);
+        }
+
+        .period-picker {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 16px;
           background: white;
           border: 1px solid var(--border-color);
-          border-radius: 8px;
+          border-radius: 12px;
           font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
         .kpi-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
+          gap: 24px;
         }
 
-        .kpi-card {
-          padding: 20px;
+        .kpi-card-glass {
+          padding: 24px;
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(12px);
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 12px;
+          position: relative;
+          overflow: hidden;
         }
 
-        .kpi-name { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
-        .kpi-value { font-size: 28px; font-weight: 800; color: var(--text-main); }
-        .kpi-progress-bg { height: 4px; background: #f1f3f4; border-radius: 2px; }
-        .kpi-progress-bar { height: 100%; border-radius: 2px; }
+        .kpi-card-glass:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+        .kpi-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .kpi-name { 
+          font-size: 12px; 
+          font-weight: 700; 
+          color: var(--text-secondary); 
+          text-transform: uppercase; 
+          letter-spacing: 1px;
+        }
+
+        .kpi-value { 
+          font-size: 32px; 
+          font-weight: 900; 
+          color: var(--text-main);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .kpi-visual {
+          height: 6px;
+          background: rgba(0,0,0,0.03);
+          border-radius: 10px;
+          margin-top: 8px;
+          overflow: hidden;
+        }
+
+        .kpi-gradient-bar {
+          height: 100%;
+          width: 70%; /* Representing value visually */
+          border-radius: 10px;
+        }
 
         .main-charts-row { width: 100%; }
+
+        .report-card { 
+          padding: 28px; 
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(10px);
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+          min-height: 400px;
+          display: flex; 
+          flex-direction: column; 
+          transition: all 0.4s ease;
+        }
+
+        .report-card:hover {
+          box-shadow: 0 20px 45px rgba(0,0,0,0.07);
+        }
+
+        .card-header h3 { 
+          margin: 0; 
+          font-size: 18px; 
+          font-weight: 800; 
+          color: var(--text-main); 
+          letter-spacing: -0.3px;
+        }
+
         .dist-charts-row {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 20px;
+          gap: 24px;
         }
-
-        .report-card { padding: 20px; }
-        .card-header h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
 
         .chart-container {
-          height: 220px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-top: 15px;
-        }
-
-        .pie-layout {
-          justify-content: flex-start;
-          gap: 40px;
-        }
-
-        .bar-chart-sim {
-          display: flex;
-          align-items: flex-end;
-          gap: 15px;
-          height: 100%;
+          flex: 1;
+          margin-top: 25px;
           width: 100%;
+          min-height: 280px;
         }
 
-        .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
-        .bar { width: 100%; max-width: 60px; background: var(--brand-primary); border-radius: 4px 4px 0 0; }
-        .bar-label { font-size: 11px; color: var(--text-secondary); font-weight: 700; }
-
-        .pie-chart-sim { position: relative; width: 160px; height: 160px; border-radius: 50%; }
-        .pie-center { position: absolute; top: 25px; left: 25px; width: 110px; height: 110px; background: white; border-radius: 50%; }
-
-        .chart-legend { display: flex; flex-direction: column; gap: 10px; }
-        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
-        .dot { width: 10px; height: 10px; border-radius: 2px; }
+        @media (max-width: 1024px) {
+          .kpi-grid { grid-template-columns: 1fr; }
+          .dist-charts-row { grid-template-columns: 1fr; }
+        }
 
         @media print {
           .reports-container { gap: 30px; }

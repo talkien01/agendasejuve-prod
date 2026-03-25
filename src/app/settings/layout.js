@@ -19,7 +19,7 @@ export default function SettingsLayout({ children }) {
   const categories = [
     { title: 'Ajustes de Sistema', items: [
       { id: 'settings', name: 'General', icon: Globe, path: '/settings' },
-      // { id: 'notifications', name: 'Notificaciones', icon: Bell, path: '/settings/notificaciones' },
+      { id: 'notifications', name: 'Log Notificaciones', icon: Bell, path: '/settings/notificaciones' },
       { id: 'security', name: 'Seguridad', icon: Lock, path: '/settings/seguridad' },
     ]},
     { title: 'Administración', items: [
