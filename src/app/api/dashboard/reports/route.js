@@ -93,9 +93,9 @@ export async function GET(req) {
     let reservasCount = 0;
 
     appointmentsWithServices.forEach(app => {
-      if (app.type === 'RESOURCE') {
+      if (app.type === 'RESOURCE' || app.type === 'Reserva') {
         reservasCount++;
-      } else if (app.type === 'PROFESSIONAL' && app.service) {
+      } else if ((app.type === 'PROFESSIONAL' || app.type === 'Cita') && app.service) {
         const category = app.service.category?.toLowerCase() || '';
         const name = app.service.name?.toLowerCase() || '';
         if (category.includes('consulta') || name.includes('consulta') || name.includes('valoración')) {
@@ -118,7 +118,10 @@ export async function GET(req) {
 
     // 4. Space Reservation (Reservas) Distribution
     const resourceAppointments = await prisma.appointment.findMany({
-      where: { date: { gte: thirtyDaysAgo }, type: 'RESOURCE' },
+      where: { 
+        date: { gte: thirtyDaysAgo }, 
+        resourceId: { not: null } 
+      },
       include: { resource: true }
     });
 

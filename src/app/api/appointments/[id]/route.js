@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { sendAppointmentUpdate, sendAppointmentCancellation } from '@/lib/notifications';
 
 export async function GET(request, props) {
   try {
@@ -63,6 +64,10 @@ export async function PATCH(request, props) {
       include: { patient: true, resource: true, professional: true },
     });
 
+    if (body.notifyPatient) {
+      await sendAppointmentUpdate(id).catch(e => console.error("Notification error on UPDATE:", e));
+    }
+
     return NextResponse.json(appointment);
   } catch (error) {
     console.error(`Update appointment error:`, error);
@@ -78,7 +83,16 @@ export async function DELETE(request, props) {
   try {
     const params = await props.params;
     const id = params.id;
-    console.log(`[DELETE] Starting deletion process for appointment: ${id}`);
+    const notifyOpt = request.nextUrl.searchParams.get('notify') === 'true';
+    console.log(`[DELETE] Starting deletion process for appointment: ${id}, notify: ${notifyOpt}`);
+
+    let appointmentToCancel = null;
+    if (notifyOpt) {
+      appointmentToCancel = await prisma.appointment.findUnique({
+        where: { id },
+        include: { patient: true }
+      });
+    }
 
     // 1. Delete associated notifications
     const deletedNotifications = await prisma.notification.deleteMany({
@@ -99,6 +113,10 @@ export async function DELETE(request, props) {
       where: { id: id },
     });
     console.log(`[DELETE] Appointment ${id} deleted successfully.`);
+
+    if (notifyOpt && appointmentToCancel) {
+      await sendAppointmentCancellation(appointmentToCancel).catch(e => console.error("Notification error on DELETE:", e));
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

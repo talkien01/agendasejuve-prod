@@ -196,34 +196,40 @@ export default function ReportsPage() {
             <h3>Distribución de Servicios</h3>
           </div>
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={serviceDist}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                  animationDuration={1000}
-                >
-                  {serviceDist.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(255,255,255,0.5)" strokeWidth={2} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: '16px', 
-                    border: '1px solid rgba(255,255,255,0.5)', 
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                    background: 'rgba(255,255,255,0.8)',
-                    backdropFilter: 'blur(8px)'
-                  }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {serviceDist.reduce((a, b) => a + b.value, 0) === 0 ? (
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+                Sin datos suficientes
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={serviceDist}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    animationDuration={1000}
+                  >
+                    {serviceDist.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(255,255,255,0.5)" strokeWidth={2} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      borderRadius: '16px', 
+                      border: '1px solid rgba(255,255,255,0.5)', 
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                      background: 'rgba(255,255,255,0.8)',
+                      backdropFilter: 'blur(8px)'
+                    }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -232,34 +238,40 @@ export default function ReportsPage() {
             <h3>Distribución de Espacios</h3>
           </div>
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={spaceDist}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                  animationDuration={1000}
-                >
-                  {spaceDist.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[(index + 3) % COLORS.length]} stroke="rgba(255,255,255,0.5)" strokeWidth={2} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: '16px', 
-                    border: '1px solid rgba(255,255,255,0.5)', 
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                    background: 'rgba(255,255,255,0.8)',
-                    backdropFilter: 'blur(8px)'
-                  }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {spaceDist.reduce((a, b) => a + b.value, 0) === 0 ? (
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+                Aún no hay reservas de espacios registradas
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={spaceDist}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    animationDuration={1000}
+                  >
+                    {spaceDist.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[(index + 3) % COLORS.length]} stroke="rgba(255,255,255,0.5)" strokeWidth={2} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      borderRadius: '16px', 
+                      border: '1px solid rgba(255,255,255,0.5)', 
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                      background: 'rgba(255,255,255,0.8)',
+                      backdropFilter: 'blur(8px)'
+                    }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>

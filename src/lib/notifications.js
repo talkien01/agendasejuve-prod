@@ -191,3 +191,42 @@ export async function sendAppointmentReminder(appointment) {
 
   return results;
 }
+
+export async function sendAppointmentUpdate(appointmentId) {
+  const app = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { patient: true, service: true, resource: true, professional: true, local: true }
+  });
+  if (!app || !app.patient) return;
+  
+  const dateStr = new Date(app.date).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const place = app.resource?.name || app.professional?.name || 'SEJUVE';
+  const localName = app.local?.name || 'SEJUVE';
+  
+  const message = `¡Hola ${app.patient.name}! 👋\n\nTu cita ha sido ACTUALIZADA:\n📅 Fecha: ${dateStr}\n⏰ Hora: ${app.startTime}\n📍 Lugar: ${place} (${localName})\n\nCualquier duda, contáctanos.`;
+  
+  const results = [];
+  if (app.patient.notifyWhatsapp && app.patient.phone) {
+    results.push(await sendNotification({ type: 'WHATSAPP', recipient: app.patient.phone, content: message, appointmentId }));
+  }
+  if (app.patient.notifyEmail && app.patient.email) {
+    results.push(await sendNotification({ type: 'EMAIL', recipient: app.patient.email, content: message, appointmentId, title: 'Actualización de Cita' }));
+  }
+  return results;
+}
+
+export async function sendAppointmentCancellation(app) {
+  if (!app || !app.patient) return;
+  
+  const dateStr = new Date(app.date).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const message = `¡Hola ${app.patient.name}!\n\nTe informamos que tu cita programada para el ${dateStr} a las ${app.startTime} ha sido CANCELADA.\n\nSi necesitas reprogramar, por favor contáctanos.`;
+  
+  const results = [];
+  if (app.patient.notifyWhatsapp && app.patient.phone) {
+    results.push(await sendNotification({ type: 'WHATSAPP', recipient: app.patient.phone, content: message, appointmentId: null }));
+  }
+  if (app.patient.notifyEmail && app.patient.email) {
+    results.push(await sendNotification({ type: 'EMAIL', recipient: app.patient.email, content: message, appointmentId: null, title: 'Cancelación de Cita' }));
+  }
+  return results;
+}

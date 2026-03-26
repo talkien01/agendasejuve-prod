@@ -5,6 +5,7 @@ import './EditAppointmentModal.css';
 export default function EditAppointmentModal({ appointment, onClose, onSave, onDelete }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [notifyPatient, setNotifyPatient] = useState(true);
 
   const [patients, setPatients] = useState([]);
   const [professionals, setProfessionals] = useState([]);
@@ -89,7 +90,7 @@ export default function EditAppointmentModal({ appointment, onClose, onSave, onD
       const res = await fetch(`/api/appointments/${appointment.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify({ ...form, notifyPatient })
       });
 
       if (!res.ok) {
@@ -114,7 +115,7 @@ export default function EditAppointmentModal({ appointment, onClose, onSave, onD
     
     setSaving(true);
     try {
-      const res = await fetch(`/api/appointments/${appointment.id}`, {
+      const res = await fetch(`/api/appointments/${appointment.id}?notify=${notifyPatient}`, {
         method: 'DELETE'
       });
 
@@ -221,6 +222,18 @@ export default function EditAppointmentModal({ appointment, onClose, onSave, onD
             <div className="form-group">
               <label>Notas</label>
               <textarea name="notes" rows={3} placeholder="Observaciones..." value={form.notes} onChange={handleFormChange} />
+            </div>
+
+            <div className="form-group" style={{ marginTop: '15px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'normal' }}>
+                <input 
+                  type="checkbox" 
+                  checked={notifyPatient} 
+                  onChange={(e) => setNotifyPatient(e.target.checked)} 
+                  style={{ width: 'auto', margin: 0 }}
+                />
+                Notificar al usuario por correo/WhatsApp sobre este cambio
+              </label>
             </div>
           </div>
         )}
