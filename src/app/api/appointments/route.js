@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getSession, hasRole } from '@/lib/auth';
 import { sendAppointmentConfirmation } from '@/lib/notifications';
+import crypto from 'crypto';
 
 export async function GET(request) {
   try {
