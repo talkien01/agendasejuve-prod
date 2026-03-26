@@ -115,7 +115,7 @@ export default function PatientDetailsPage() {
   if (loading) {
     return (
       <div className="flex-center h-full p-20">
-        <Loader2 className="animate-spin" size={32} color="#00BFFF" />
+        <Loader2 className="animate-spin" size={32} color="#9d00ff" />
       </div>
     );
   }
@@ -287,7 +287,7 @@ export default function PatientDetailsPage() {
                       style={{ display: 'none' }}
                     />
                     <div className="dropzone-content">
-                      <Paperclip size={24} color={isDragging ? '#00BFFF' : '#aaa'} />
+                      <Paperclip size={24} color={isDragging ? '#9d00ff' : '#aaa'} />
                       <p>{isDragging ? 'Suelta los archivos aquí' : 'Arrastra y suelta archivos aquí, o haz clic para examinar'}</p>
                     </div>
                   </div>

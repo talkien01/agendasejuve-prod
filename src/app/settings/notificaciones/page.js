@@ -87,7 +87,7 @@ export default function NotificationLogsPage() {
                 <tr key={log.id}>
                   <td>
                     <div className="type-badge">
-                      {log.type === 'WHATSAPP' ? <MessageSquare size={14} color="#25D366" /> : <Mail size={14} color="#00BFFF" />}
+                      {log.type === 'WHATSAPP' ? <MessageSquare size={14} color="#25D366" /> : <Mail size={14} color="#9d00ff" />}
                       <span>{log.type}</span>
                     </div>
                   </td>

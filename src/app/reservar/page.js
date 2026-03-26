@@ -475,7 +475,7 @@ export default function ReservarPage() {
           border: 1px solid #eee;
         }
 
-        .text-primary { color: #00bfff; }
+        .text-primary { color: #9d00ff; }
         .text-purple-600 { color: #8a2be2; }
         .font-bold { font-weight: bold; }
 
@@ -545,7 +545,7 @@ export default function ReservarPage() {
         }
 
         .location-item :global(svg) {
-          color: #00BFFF;
+          color: #9d00ff;
         }
 
         .success-text {
@@ -658,9 +658,9 @@ export default function ReservarPage() {
         }
 
         .service-card:hover {
-          border-color: #00BFFF;
+          border-color: #9d00ff;
           transform: translateY(-4px);
-          box-shadow: 0 12px 24px rgba(0,191,255,0.08);
+          box-shadow: 0 12px 24px rgba(157, 0, 255,0.08);
         }
 
         .service-info h4 {
@@ -680,7 +680,7 @@ export default function ReservarPage() {
           display: block;
           margin-top: 12px;
           font-weight: 800;
-          color: #00BFFF;
+          color: #9d00ff;
           font-size: 16px;
         }
 
@@ -702,7 +702,7 @@ export default function ReservarPage() {
         }
 
         .pro-select-card:hover {
-          border-color: #00BFFF;
+          border-color: #9d00ff;
           background-color: white;
           transform: translateX(8px);
           box-shadow: 0 8px 24px rgba(0,0,0,0.04);
@@ -782,16 +782,16 @@ export default function ReservarPage() {
         }
 
         .day-card.selected {
-          background-color: #00BFFF;
+          background-color: #9d00ff;
           color: white;
-          border-color: #00BFFF;
-          box-shadow: 0 8px 20px rgba(0,191,255,0.3);
+          border-color: #9d00ff;
+          box-shadow: 0 8px 20px rgba(157, 0, 255,0.3);
           transform: scale(1.05);
         }
 
         .day-card:hover:not(.selected) {
-          border-color: #00BFFF;
-          background-color: rgba(0,191,255,0.02);
+          border-color: #9d00ff;
+          background-color: rgba(157, 0, 255,0.02);
         }
 
         .day-name {
@@ -833,9 +833,9 @@ export default function ReservarPage() {
         }
 
         .time-btn:hover {
-          border-color: #00BFFF;
-          color: #00BFFF;
-          background-color: rgba(0,191,255,0.02);
+          border-color: #9d00ff;
+          color: #9d00ff;
+          background-color: rgba(157, 0, 255,0.02);
           transform: translateY(-2px);
         }
 
@@ -916,7 +916,7 @@ export default function ReservarPage() {
         }
 
         .btn-primary {
-          background: #00BFFF;
+          background: #9d00ff;
           color: white;
           padding: 14px;
           border-radius: 12px;
@@ -975,13 +975,13 @@ export default function ReservarPage() {
         }
 
         .input-with-icon input:focus {
-          border-color: #00BFFF;
+          border-color: #9d00ff;
           background: white;
-          box-shadow: 0 0 0 4px rgba(0,191,255,0.1);
+          box-shadow: 0 0 0 4px rgba(157, 0, 255,0.1);
         }
 
         .agendar-btn {
-          background: #00BFFF;
+          background: #9d00ff;
           color: white;
           border: none;
           padding: 16px 32px;
@@ -990,13 +990,13 @@ export default function ReservarPage() {
           font-weight: 700;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 8px 24px rgba(0,191,255,0.2);
+          box-shadow: 0 8px 24px rgba(157, 0, 255,0.2);
         }
 
         .agendar-btn:hover {
-          background: #00a0d9;
+          background: #7e00cc;
           transform: translateY(-2px);
-          box-shadow: 0 12px 32px rgba(0,191,255,0.3);
+          box-shadow: 0 12px 32px rgba(157, 0, 255,0.3);
         }
 
         .full-width {

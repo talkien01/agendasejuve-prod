@@ -62,7 +62,7 @@ export async function sendNotification({ type, recipient, content, appointmentId
         subject: `${title} - SEJUVE`,
         text: content,
         html: `<div style="font-family: inherit; padding: 20px; border-radius: 12px; border: 1px solid #eee;">
-          <h2 style="color: #00BFFF;">${title}</h2>
+          <h2 style="color: #9d00ff;">${title}</h2>
           <p>${content.replace(/\n/g, '<br>')}</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
           <small style="color: #666;">Este es un mensaje automático, por favor no responda.</small>

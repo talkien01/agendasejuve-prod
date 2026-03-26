@@ -145,7 +145,7 @@ export default function SettingsLayout({ children }) {
         }
 
         .category-item.active {
-          background: rgba(0, 191, 255, 0.1);
+          background: rgba(157, 0, 255, 0.1);
           color: var(--brand-primary);
           font-weight: 600;
         }
@@ -263,7 +263,7 @@ export default function SettingsLayout({ children }) {
         .action-btn {
           background: none;
           border: none;
-          color: #00bfff;
+          color: #9d00ff;
           cursor: pointer;
           font-weight: 500;
           padding: 4px 8px;

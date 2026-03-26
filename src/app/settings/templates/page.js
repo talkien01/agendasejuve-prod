@@ -363,8 +363,8 @@ export default function TemplatesPage() {
         .field-badge {
           font-size: 10px;
           font-weight: 800;
-          color: #00BFFF;
-          background: rgba(0, 191, 255, 0.1);
+          color: #9d00ff;
+          background: rgba(157, 0, 255, 0.1);
           padding: 2px 8px;
           border-radius: 4px;
         }
@@ -406,8 +406,8 @@ export default function TemplatesPage() {
         }
 
         .btn-add-field:hover {
-          border-color: #00BFFF;
-          color: #00BFFF;
+          border-color: #9d00ff;
+          color: #9d00ff;
           background: #f0fbff;
           transform: translateX(4px);
         }

@@ -94,8 +94,8 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #00BFFF;
-  box-shadow: 0 0 0 4px rgba(0,191,255,0.1);
+  border-color: #9d00ff;
+  box-shadow: 0 0 0 4px rgba(157, 0, 255,0.1);
 }
 
 textarea {
@@ -157,7 +157,7 @@ textarea {
   font-size: 14px;
   font-weight: 600;
   color: white;
-  background: #00BFFF;
+  background: #9d00ff;
   border: none;
   border-radius: 10px;
   cursor: pointer;

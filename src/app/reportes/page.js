@@ -27,7 +27,7 @@ import {
   Cell 
 } from 'recharts';
 
-const COLORS = ['#00BFFF', '#4CAF50', '#9C27B0', '#FF9800', '#009688', '#607D8B'];
+const COLORS = ['#9d00ff', '#d946ef', '#f472b6', '#a855f7', '#ec4899', '#c084fc'];
 
 export default function ReportsPage() {
   const [data, setData] = useState(null);
@@ -100,10 +100,10 @@ export default function ReportsPage() {
   };
 
   const getKpiGradient = (name) => {
-    if (name.includes('Asistencia')) return 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
-    if (name.includes('Reservas')) return 'linear-gradient(135deg, #00BFFF 0%, #4facfe 100%)';
-    if (name.includes('Usuarios')) return 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
-    return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    if (name.includes('Asistencia')) return 'linear-gradient(135deg, #a855f7 0%, #d946ef 100%)';
+    if (name.includes('Reservas')) return 'linear-gradient(135deg, #8b5cf6 0%, #c084fc 100%)';
+    if (name.includes('Usuarios')) return 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)';
+    return 'linear-gradient(135deg, #9d00ff 0%, #d946ef 100%)';
   };
 
   return (
@@ -130,8 +130,8 @@ export default function ReportsPage() {
         {kpis.map((kpi) => (
           <div key={kpi.name} className="card kpi-card-glass" style={{ borderLeft: `4px solid ${kpi.color}` }}>
             <div className="kpi-header">
+              <TrendingUp size={24} color={kpi.color || '#9d00ff'} />
               <span className="kpi-name">{kpi.name}</span>
-              <TrendingUp size={16} color={kpi.color} />
             </div>
             <div className="kpi-body">
               <span className="kpi-value">{kpi.value}</span>
@@ -143,55 +143,48 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      <div className="main-charts-row">
-        <div className="card report-card full-width">
+      <div className="charts-grid">
+        <div className="card report-card tech-card">
           <div className="card-header">
-            <h3>Reservas Mensuales (Semestre Actual)</h3>
+            <h3>Reservas Mensuales</h3>
           </div>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyBookings} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <BarChart data={monthlyBookings} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00BFFF" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#0070f3" stopOpacity={0.2}/>
+                  <linearGradient id="barTechGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="5%" stopColor="#9d00ff" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#d946ef" stopOpacity={0.7}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="label" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 12, fontWeight: 600, fill: '#666' }} 
-                />
-                <YAxis hide />
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(157, 0, 255, 0.1)" />
+                <XAxis type="number" hide />
+                <YAxis dataKey="label" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#666' }} width={80} />
                 <Tooltip 
-                  cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                  cursor={{ fill: 'rgba(157,0,255,0.05)' }}
                   contentStyle={{ 
                     borderRadius: '16px', 
-                    border: '1px solid rgba(255,255,255,0.5)', 
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                    background: 'rgba(255,255,255,0.8)',
+                    border: '1px solid rgba(157, 0, 255, 0.2)', 
+                    boxShadow: '0 10px 30px rgba(157,0,255,0.1)',
+                    background: 'rgba(255,255,255,0.9)',
                     backdropFilter: 'blur(8px)',
                     padding: '12px'
                   }}
-                  itemStyle={{ fontWeight: 700, color: '#333' }}
+                  itemStyle={{ fontWeight: 700, color: '#9d00ff' }}
                 />
                 <Bar 
                   dataKey="value" 
-                  fill="url(#barGradient)" 
-                  radius={[10, 10, 0, 0]} 
-                  barSize={40} 
+                  fill="url(#barTechGradient)" 
+                  radius={[0, 10, 10, 0]} 
+                  barSize={20} 
                   animationDuration={1500}
                 />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
-      </div>
 
-      <div className="dist-charts-row">
-        <div className="card report-card">
+        <div className="card report-card tech-card">
           <div className="card-header">
             <h3>Distribución de Servicios</h3>
           </div>
@@ -220,10 +213,9 @@ export default function ReportsPage() {
                   <Tooltip 
                     contentStyle={{ 
                       borderRadius: '16px', 
-                      border: '1px solid rgba(255,255,255,0.5)', 
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                      background: 'rgba(255,255,255,0.8)',
-                      backdropFilter: 'blur(8px)'
+                      border: '1px solid rgba(157, 0, 255, 0.2)', 
+                      boxShadow: '0 10px 30px rgba(157,0,255,0.1)',
+                      background: 'rgba(255,255,255,0.9)'
                     }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
@@ -233,14 +225,14 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <div className="card report-card">
+        <div className="card report-card tech-card">
           <div className="card-header">
             <h3>Distribución de Espacios</h3>
           </div>
           <div className="chart-container">
             {spaceDist.reduce((a, b) => a + b.value, 0) === 0 ? (
               <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
-                Aún no hay reservas de espacios registradas
+                Aún no hay reservas
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -262,10 +254,9 @@ export default function ReportsPage() {
                   <Tooltip 
                     contentStyle={{ 
                       borderRadius: '16px', 
-                      border: '1px solid rgba(255,255,255,0.5)', 
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                      background: 'rgba(255,255,255,0.8)',
-                      backdropFilter: 'blur(8px)'
+                      border: '1px solid rgba(157, 0, 255, 0.2)', 
+                      boxShadow: '0 10px 30px rgba(157,0,255,0.1)',
+                      background: 'rgba(255,255,255,0.9)'
                     }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
@@ -283,6 +274,8 @@ export default function ReportsPage() {
           gap: 24px;
           padding-bottom: 40px;
           animation: fadeIn 0.8s ease-out;
+          background: radial-gradient(circle at top left, rgba(217, 70, 239, 0.05), transparent 40%),
+                      radial-gradient(circle at bottom right, rgba(157, 0, 255, 0.05), transparent 40%);
         }
 
         @keyframes fadeIn {
@@ -333,7 +326,8 @@ export default function ReportsPage() {
           background: white;
           transform: translateY(-2px);
           box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-          border-color: var(--brand-primary);
+          border-color: #9d00ff;
+          color: #9d00ff;
         }
 
         .period-picker {
@@ -352,108 +346,142 @@ export default function ReportsPage() {
 
         .kpi-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 24px;
         }
 
         .kpi-card-glass {
-          padding: 24px;
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
+          padding: 16px 20px;
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(16px);
           border-radius: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+          border: 1px solid rgba(74, 20, 140, 0.1);
+          box-shadow: 0 4px 15px rgba(74, 20, 140, 0.08);
           transition: transform 0.3s ease, box-shadow 0.3s ease;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          gap: 10px;
           position: relative;
           overflow: hidden;
         }
 
+        .kpi-card-glass::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 100%;
+          background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
+          z-index: 0;
+          pointer-events: none;
+        }
+
         .kpi-card-glass:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+          transform: translateY(-4px) scale(1.01);
+          box-shadow: 0 8px 25px rgba(74, 20, 140, 0.12);
+          border-color: rgba(74, 20, 140, 0.25);
         }
 
         .kpi-header {
           display: flex;
-          justify-content: space-between;
+          flex-direction: column;
           align-items: center;
+          gap: 8px;
+          z-index: 1;
         }
 
         .kpi-name { 
-          font-size: 12px; 
+          font-size: 13px; 
           font-weight: 700; 
-          color: var(--text-secondary); 
+          color: #6b7280; 
           text-transform: uppercase; 
-          letter-spacing: 1px;
+          letter-spacing: 1.5px;
+        }
+
+        .kpi-body {
+          z-index: 1;
         }
 
         .kpi-value { 
-          font-size: 32px; 
+          font-size: 36px; 
           font-weight: 900; 
-          color: var(--text-main);
+          color: #4a148c;
           font-variant-numeric: tabular-nums;
         }
 
         .kpi-visual {
-          height: 6px;
-          background: rgba(0,0,0,0.03);
+          width: 50%;
+          height: 4px;
+          background: rgba(157, 0, 255, 0.1);
           border-radius: 10px;
-          margin-top: 8px;
+          margin-top: auto;
           overflow: hidden;
+          z-index: 1;
         }
 
         .kpi-gradient-bar {
           height: 100%;
-          width: 70%; /* Representing value visually */
+          width: 100%; 
           border-radius: 10px;
+          animation: slideRight 1s ease-out forwards;
+        }
+        
+        @keyframes slideRight {
+          from { width: 0; }
+          to { width: 100%; }
         }
 
-        .main-charts-row { width: 100%; }
+        .charts-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 24px;
+        }
 
-        .report-card { 
-          padding: 28px; 
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(10px);
+        .tech-card { 
+          padding: 24px; 
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(16px);
           border-radius: 24px;
-          border: 1px solid rgba(255, 255, 255, 0.6);
-          box-shadow: 0 15px 35px rgba(0,0,0,0.05);
-          min-height: 400px;
+          border: 1px solid rgba(74, 20, 140, 0.1);
+          box-shadow: 0 6px 20px rgba(74, 20, 140, 0.05);
+          min-height: 380px;
           display: flex; 
           flex-direction: column; 
           transition: all 0.4s ease;
         }
 
-        .report-card:hover {
-          box-shadow: 0 20px 45px rgba(0,0,0,0.07);
+        .tech-card:hover {
+          box-shadow: 0 12px 30px rgba(74, 20, 140, 0.1);
+          border-color: rgba(74, 20, 140, 0.2);
         }
 
         .card-header h3 { 
           margin: 0; 
-          font-size: 18px; 
+          font-size: 17px; 
           font-weight: 800; 
-          color: var(--text-main); 
-          letter-spacing: -0.3px;
-        }
-
-        .dist-charts-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 24px;
+          color: #1f2937; 
+          letter-spacing: -0.2px;
+          text-align: center;
+          margin-bottom: 10px;
         }
 
         .chart-container {
           flex: 1;
-          margin-top: 25px;
           width: 100%;
-          min-height: 280px;
+          border-radius: 12px;
+          overflow: hidden;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
+          .charts-grid { grid-template-columns: repeat(2, 1fr); }
+          .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+          .charts-grid { grid-template-columns: 1fr; }
           .kpi-grid { grid-template-columns: 1fr; }
-          .dist-charts-row { grid-template-columns: 1fr; }
         }
 
         @media print {

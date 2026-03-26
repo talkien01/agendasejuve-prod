@@ -43,7 +43,7 @@ export default function LoginPage() {
       <div className="login-card">
         <div className="login-header">
           <div className="logo-placeholder">
-            <Lock size={32} color="#00bfff" />
+            <Lock size={32} color="#9d00ff" />
           </div>
           <h1>SEJUVE Citas</h1>
           <p>Ingresa tus credenciales para continuar</p>
@@ -118,7 +118,7 @@ export default function LoginPage() {
         }
 
         .logo-placeholder {
-          background: rgba(0, 191, 255, 0.1);
+          background: rgba(157, 0, 255, 0.1);
           width: 64px;
           height: 64px;
           border-radius: 16px;

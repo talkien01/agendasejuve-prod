@@ -152,7 +152,7 @@ export async function GET(req) {
         { name: 'Asistencia', value: `${attendanceRate}%`, color: '#4CAF50' },
         { name: 'Ingresos (30d)', value: `$${totalRevenue.toLocaleString()}`, color: '#FFD700' },
         { name: 'Retención', value: `${retentionRate}%`, color: '#9C27B0' },
-        { name: 'Reservas (30d)', value: newBookings.toString(), color: '#00BFFF' },
+        { name: 'Reservas (30d)', value: newBookings.toString(), color: '#9d00ff' },
       ],
       monthlyBookings,
       serviceDist,

@@ -160,7 +160,7 @@ export default function Header() {
 
         .nav-link.active {
           color: white;
-          border-bottom-color: #00bfff;
+          border-bottom-color: #9d00ff;
         }
 
         .nav-link .ml-1 {

@@ -53,7 +53,7 @@
 .card-avatar {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #00BFFF 0%, #0070f3 100%);
+  background: linear-gradient(135deg, #9d00ff 0%, #0070f3 100%);
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -129,20 +129,20 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #00BFFF;
+  background: #9d00ff;
   color: white;
   border: none;
   border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 10px rgba(0,191,255,0.2);
+  box-shadow: 0 4px 10px rgba(157, 0, 255,0.2);
 }
 
 .btn-primary:hover, .btn-save:hover {
   background: #009BD9;
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0,191,255,0.3);
+  box-shadow: 0 6px 15px rgba(157, 0, 255,0.3);
 }
 
 .form-card {
@@ -150,7 +150,7 @@
   background: white;
   border-radius: 20px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  border: 1px solid #00BFFF40;
+  border: 1px solid #9d00ff40;
 }
 
 .form-card h4 {
@@ -181,7 +181,7 @@
 }
 
 .form-group input:focus, .form-group textarea:focus {
-  border-color: #00BFFF;
+  border-color: #9d00ff;
   outline: none;
 }
 
@@ -239,9 +239,9 @@
 .marker-dot {
   width: 10px;
   height: 10px;
-  background: #00BFFF;
+  background: #9d00ff;
   border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(0,191,255,0.1);
+  box-shadow: 0 0 0 4px rgba(157, 0, 255,0.1);
 }
 
 .record-card {
@@ -287,7 +287,7 @@
   padding: 12px 16px;
   background: #f8fbff;
   border-radius: 12px;
-  border-left: 3px solid #00BFFF;
+  border-left: 3px solid #9d00ff;
 }
 
 .record-treatment strong {
@@ -328,7 +328,7 @@
 
 /* Drag and Drop File Upload */
 .dropzone {
-  border: 2px dashed #00BFFF40;
+  border: 2px dashed #9d00ff40;
   border-radius: 12px;
   padding: 30px;
   text-align: center;
@@ -339,7 +339,7 @@
 }
 
 .dropzone:hover, .dropzone.dragging {
-  border-color: #00BFFF;
+  border-color: #9d00ff;
   background: #e6f7ff;
 }
 
@@ -372,7 +372,7 @@
   border: 1px solid #eee;
   border-radius: 8px;
   font-size: 13px;
-  color: #00BFFF;
+  color: #9d00ff;
   animation: fadeIn 0.3s ease;
 }
 
@@ -393,9 +393,9 @@
 }
 
 .template-select:focus {
-  border-color: #00BFFF;
+  border-color: #9d00ff;
   background-color: white;
-  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(157, 0, 255, 0.1);
 }
 
 .dynamic-fields-container {

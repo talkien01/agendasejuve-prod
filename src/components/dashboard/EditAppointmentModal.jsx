@@ -150,7 +150,7 @@ export default function EditAppointmentModal({ appointment, onClose, onSave, onD
 
         {loading ? (
           <div className="modal-body flex-center" style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Loader2 className="spin" size={32} color="#00BFFF" />
+            <Loader2 className="spin" size={32} color="#9d00ff" />
           </div>
         ) : (
           <div className="modal-body">
