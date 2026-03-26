@@ -37,6 +37,18 @@ export default function PatientDetailsPage() {
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Drag & Drop Handlers
+  const onDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+  const onDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
+  const onDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setSelectedFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -185,15 +197,33 @@ export default function PatientDetailsPage() {
                     <Paperclip size={16} />
                     <span>Adjuntar archivos (Imágenes, PDFs...)</span>
                   </label>
-                  <input 
-                    type="file" 
-                    multiple 
-                    onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
-                    style={{ marginTop: '5px' }}
-                  />
+                  <div 
+                    className={`dropzone ${isDragging ? 'dragging' : ''}`}
+                    onDragOver={onDragOver}
+                    onDragLeave={onDragLeave}
+                    onDrop={onDrop}
+                    onClick={() => document.getElementById('file-upload').click()}
+                  >
+                    <input 
+                      id="file-upload"
+                      type="file" 
+                      multiple 
+                      onChange={(e) => setSelectedFiles(prev => [...prev, ...Array.from(e.target.files)])}
+                      style={{ display: 'none' }}
+                    />
+                    <div className="dropzone-content">
+                      <Paperclip size={24} color={isDragging ? '#00BFFF' : '#aaa'} />
+                      <p>{isDragging ? 'Suelta los archivos aquí' : 'Arrastra y suelta archivos aquí, o haz clic para examinar'}</p>
+                    </div>
+                  </div>
                   {selectedFiles.length > 0 && (
-                    <div style={{ marginTop: '8px', fontSize: '13px', color: '#666' }}>
-                      {selectedFiles.length} archivo(s) seleccionado(s)
+                    <div className="selected-files-list">
+                      {selectedFiles.map((file, i) => (
+                        <div key={i} className="selected-file-item">
+                           {file.type ? (file.type.startsWith('image/') ? <FileIcon size={14} /> : <FileText size={14} />) : <FileText size={14} />}
+                           <span>{file.name}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
