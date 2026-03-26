@@ -104,10 +104,13 @@ export async function POST(request) {
     const count = isRecurring ? Math.min(parseInt(body.recurrenceCount) || 1, 12) : 1;
     const recurrenceId = isRecurring ? crypto.randomUUID() : null;
     
+    console.log(`Creating ${count} appointments. Recurring: ${isRecurring}, RecurrenceId: ${recurrenceId}`);
+    
     const createdAppointments = [];
 
     for (let i = 0; i < count; i++) {
       const instanceDate = new Date(y, m - 1, d + (i * 7), 0, 0, 0);
+      console.log(`Instance ${i} date:`, instanceDate);
       
       const appointment = await prisma.appointment.create({
         data: {
@@ -140,9 +143,9 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json(isRecurring ? createdAppointments[0] : createdAppointments[0]);
+    return NextResponse.json(createdAppointments[0]);
   } catch (error) {
     console.error('Create appointment error:', error);
-    return NextResponse.json({ error: 'Failed to create appointment' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create appointment', details: error.message }, { status: 500 });
   }
 }
