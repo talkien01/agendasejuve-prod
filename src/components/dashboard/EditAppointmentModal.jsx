@@ -69,7 +69,18 @@ export default function EditAppointmentModal({ appointment, onClose, onSave, onD
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm(prev => {
+      const updated = { ...prev, [name]: value };
+      
+      if (name === 'startTime' && value) {
+        const [h, m] = value.split(':');
+        let nextH = parseInt(h, 10) + 1;
+        if (nextH >= 24) nextH = 0;
+        updated.endTime = `${nextH.toString().padStart(2, '0')}:${m}`;
+      }
+      
+      return updated;
+    });
   };
 
   const handleUpdate = async () => {

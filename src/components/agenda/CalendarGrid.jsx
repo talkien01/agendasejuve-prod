@@ -10,6 +10,7 @@ export default function CalendarGrid({
   getAppointmentsForSlot,
   openNewAppointment,
   handleDeleteAppointment,
+  onAppointmentClick,
   view,
   STATUS_BG,
   STATUS_COLOR
@@ -63,7 +64,10 @@ export default function CalendarGrid({
                         <div
                           key={app.id}
                           className="appointment-block"
-                          onClick={(e) => e.stopPropagation()} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onAppointmentClick) onAppointmentClick(app);
+                          }} 
                           style={{
                             background: STATUS_BG[app.status] || '#e3f2fd',
                             borderLeftColor: STATUS_COLOR[app.status] || '#1976d2',

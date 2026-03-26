@@ -8,6 +8,7 @@ import { useFilters } from '@/context/FilterContext';
 import AgendaToolbar from '@/components/agenda/AgendaToolbar';
 import CalendarGrid from '@/components/agenda/CalendarGrid';
 import AppointmentModal from '@/components/agenda/AppointmentModal';
+import EditAppointmentModal from '@/components/dashboard/EditAppointmentModal';
 
 import './agenda.css';
 
@@ -43,6 +44,7 @@ export default function AgendaPage() {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isNewPatient, setIsNewPatient] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState(null);
   
   const [newPatientData, setNewPatientData] = useState({
     name: '', email: '', phone: '', identifier: ''
@@ -132,7 +134,21 @@ export default function AgendaPage() {
     });
   };
 
-  const handleFormChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => {
+      const updated = { ...prev, [name]: value };
+      
+      if (name === 'startTime' && value) {
+        const [h, m] = value.split(':');
+        let nextH = parseInt(h, 10) + 1;
+        if (nextH >= 24) nextH = 0;
+        updated.endTime = `${nextH.toString().padStart(2, '0')}:${m}`;
+      }
+      
+      return updated;
+    });
+  };
 
   const openNewAppointment = (colId, hour) => {
     let defaultType = 'Cita';
@@ -156,12 +172,22 @@ export default function AgendaPage() {
   };
 
   const handleOpenModal = (type) => {
+    const now = new Date();
+    let nextHour = now.getHours() + 1;
+    if (nextHour >= 24) nextHour = 0; // Wrap around safely
+    
+    const startStr = `${nextHour.toString().padStart(2, '0')}:00`;
+    
+    let endHour = nextHour + 1;
+    if (endHour >= 24) endHour = 0;
+    const endStr = `${endHour.toString().padStart(2, '0')}:00`;
+
     setForm({
       ...form,
       type: type,
       date: format(currentDate, 'yyyy-MM-dd'),
-      startTime: '09:00',
-      endTime: '10:00',
+      startTime: startStr,
+      endTime: endStr,
       patientId: '',
       notes: ''
     });
@@ -266,6 +292,7 @@ export default function AgendaPage() {
         getAppointmentsForSlot={getAppointmentsForSlot}
         openNewAppointment={openNewAppointment}
         handleDeleteAppointment={handleDeleteAppointment}
+        onAppointmentClick={(app) => setEditingAppointment(app)}
         view={view}
         STATUS_BG={STATUS_BG}
         STATUS_COLOR={STATUS_COLOR}
@@ -286,6 +313,21 @@ export default function AgendaPage() {
         handleSave={handleSave}
         saving={saving}
       />
+
+      {editingAppointment && (
+        <EditAppointmentModal 
+          appointment={editingAppointment} 
+          onClose={() => setEditingAppointment(null)}
+          onSave={(updatedApp) => {
+            setEditingAppointment(null);
+            fetchAll();
+          }}
+          onDelete={(deletedId) => {
+            setEditingAppointment(null);
+            fetchAll();
+          }}
+        />
+      )}
     </div>
   );
 }
