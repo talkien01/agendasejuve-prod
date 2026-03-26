@@ -376,6 +376,117 @@
   animation: fadeIn 0.3s ease;
 }
 
+/* Template Styles */
+.template-select {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #e0e7ff;
+  border-radius: 10px;
+  font-size: 14px;
+  background-color: #f5f7ff;
+  color: #3730a3;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+
+.template-select:focus {
+  border-color: #00BFFF;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
+}
+
+.dynamic-fields-container {
+  background: #fdfdfd;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  margin-bottom: 24px;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #444;
+  cursor: pointer;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  width: fit-content;
+  margin-bottom: 10px;
+}
+
+.checkbox-container input {
+  width: 18px !important;
+  height: 18px !important;
+  cursor: pointer;
+}
+
+/* Timeline Dynamic Data */
+.record-dynamic-data {
+  margin-top: 12px;
+}
+
+.template-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  background: #f3f4f6;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  background: #fafafa;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0;
+}
+
+.data-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.data-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.data-value {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 900px) {
   .details-layout {
     grid-template-columns: 1fr;

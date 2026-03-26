@@ -8,7 +8,8 @@ import {
   Building2,
   Users,
   Box,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -23,6 +24,7 @@ export default function SettingsLayout({ children }) {
       { id: 'security', name: 'Seguridad', icon: Lock, path: '/settings/seguridad' },
     ]},
     { title: 'Administración', items: [
+      { id: 'templates', name: 'Plantillas Clínicas', icon: FileText, path: '/settings/templates' },
       { id: 'locales', name: 'Sucursales (Locales)', icon: Building2, path: '/settings/locales' },
       { id: 'profesionales', name: 'Profesionales', icon: Users, path: '/settings/profesionales' },
       { id: 'servicios', name: 'Servicios', icon: Box, path: '/settings/servicios' },

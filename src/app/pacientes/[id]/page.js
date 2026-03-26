@@ -26,8 +26,11 @@ export default function PatientDetailsPage() {
   const router = useRouter();
   const [patient, setPatient] = useState(null);
   const [history, setHistory] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [dynamicData, setDynamicData] = useState({});
   
   // Form State
   const [newRecord, setNewRecord] = useState({
@@ -57,13 +60,15 @@ export default function PatientDetailsPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [pRes, hRes] = await Promise.all([
+      const [pRes, hRes, tRes] = await Promise.all([
         fetch(`/api/patients/${params.id}`),
-        fetch(`/api/patients/${params.id}/history`)
+        fetch(`/api/patients/${params.id}/history`),
+        fetch('/api/settings/templates')
       ]);
       
       if (pRes.ok) setPatient(await pRes.json());
       if (hRes.ok) setHistory(await hRes.json());
+      if (tRes.ok) setTemplates(await tRes.json());
     } catch (error) {
       console.error('Error fetching patient data:', error);
     } finally {
@@ -79,6 +84,11 @@ export default function PatientDetailsPage() {
       formData.append('diagnosis', newRecord.diagnosis);
       formData.append('content', newRecord.content);
       formData.append('treatment', newRecord.treatment);
+      
+      if (selectedTemplate) {
+        formData.append('templateId', selectedTemplate.id);
+        formData.append('templateData', JSON.stringify(dynamicData));
+      }
       
       selectedFiles.forEach(file => {
         formData.append('files', file);
@@ -163,8 +173,27 @@ export default function PatientDetailsPage() {
             <div className="card form-card animate-slide-down">
               <h4>Agregar Nueva Nota de Evolución</h4>
               <form onSubmit={handleAddRecord}>
+                {templates.length > 0 && (
+                  <div className="form-group">
+                    <label>Elegir Plantilla (Opcional)</label>
+                    <select 
+                      onChange={(e) => {
+                        const t = templates.find(temp => temp.id === e.target.value);
+                        setSelectedTemplate(t || null);
+                        setDynamicData({});
+                      }}
+                      className="template-select"
+                    >
+                      <option value="">Nota de texto libre (Sin plantilla)</option>
+                      {templates.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="form-group">
-                  <label>Diagnóstico / Motivo</label>
+                  <label>{selectedTemplate ? 'Título de la Nota / Diagnóstico' : 'Diagnóstico / Motivo'}</label>
                   <input 
                     type="text" 
                     value={newRecord.diagnosis}
@@ -173,25 +202,71 @@ export default function PatientDetailsPage() {
                     required
                   />
                 </div>
-                <div className="form-group">
-                  <label>Nota Clínica (Desarrollo)</label>
-                  <textarea 
-                    rows="4"
-                    value={newRecord.content}
-                    onChange={(e) => setNewRecord({...newRecord, content: e.target.value})}
-                    placeholder="Describe los puntos clave observados en la sesión..."
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Exploración / Tratamiento sugerido</label>
-                  <textarea 
-                    rows="2"
-                    value={newRecord.treatment}
-                    onChange={(e) => setNewRecord({...newRecord, treatment: e.target.value})}
-                    placeholder="Opcional: Próximos pasos o tareas para el paciente..."
-                  />
-                </div>
+
+                {selectedTemplate ? (
+                  <div className="dynamic-fields-container animate-fade-in">
+                    {selectedTemplate.fields.map(field => (
+                      <div key={field.id} className="form-group">
+                        <label>{field.label} {field.required && <span className="required">*</span>}</label>
+                        {field.type === 'text' && (
+                          <input 
+                            type="text" 
+                            required={field.required}
+                            onChange={(e) => setDynamicData({...dynamicData, [field.label]: e.target.value})}
+                          />
+                        )}
+                        {field.type === 'textarea' && (
+                          <textarea 
+                            rows="3"
+                            required={field.required}
+                            onChange={(e) => setDynamicData({...dynamicData, [field.label]: e.target.value})}
+                          ></textarea>
+                        )}
+                        {field.type === 'select' && (
+                          <select 
+                            required={field.required}
+                            onChange={(e) => setDynamicData({...dynamicData, [field.label]: e.target.value})}
+                          >
+                            <option value="">Seleccione una opción...</option>
+                            {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                        )}
+                        {field.type === 'checkbox' && (
+                          <label className="checkbox-container">
+                            <input 
+                              type="checkbox" 
+                              onChange={(e) => setDynamicData({...dynamicData, [field.label]: e.target.checked})}
+                            />
+                            <span>Confirmar / Sí</span>
+                          </label>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <div className="form-group">
+                      <label>Nota Clínica (Desarrollo)</label>
+                      <textarea 
+                        rows="4"
+                        value={newRecord.content}
+                        onChange={(e) => setNewRecord({...newRecord, content: e.target.value})}
+                        placeholder="Describe los puntos clave observados en la sesión..."
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Exploración / Tratamiento sugerido</label>
+                      <textarea 
+                        rows="2"
+                        value={newRecord.treatment}
+                        onChange={(e) => setNewRecord({...newRecord, treatment: e.target.value})}
+                        placeholder="Opcional: Próximos pasos o tareas para el paciente..."
+                      />
+                    </div>
+                  </>
+                )}
+                
                 <div className="form-group">
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Paperclip size={16} />
@@ -265,12 +340,34 @@ export default function PatientDetailsPage() {
                     </div>
                     <div className="record-body">
                       <h4 className="record-diagnosis">{record.diagnosis || 'Nota General'}</h4>
-                      <p className="record-content">{record.content}</p>
-                      {record.treatment && (
-                        <div className="record-treatment">
-                          <strong>Tratamiento:</strong>
-                          <p>{record.treatment}</p>
+                      
+                      {record.templateData ? (
+                        <div className="record-dynamic-data">
+                          <div className="template-badge">
+                            <FileText size={12} />
+                            <span>Usa plantilla: {record.template?.name || 'Personalizada'}</span>
+                          </div>
+                          <div className="data-grid">
+                            {Object.entries(record.templateData).map(([label, value]) => (
+                              <div key={label} className="data-item">
+                                <span className="data-label">{label}:</span>
+                                <span className="data-value">
+                                  {typeof value === 'boolean' ? (value ? '✅ Sí' : '❌ No') : (value || '-')}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
+                      ) : (
+                        <>
+                          <p className="record-content">{record.content}</p>
+                          {record.treatment && (
+                            <div className="record-treatment">
+                              <strong>Tratamiento:</strong>
+                              <p>{record.treatment}</p>
+                            </div>
+                          )}
+                        </>
                       )}
                       
                       {record.attachments && record.attachments.length > 0 && (

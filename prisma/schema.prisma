@@ -158,6 +158,10 @@ model ClinicalRecord {
   appointmentId   String?      @unique
   
   attachments     RecordAttachment[]
+
+  template        ClinicalTemplate? @relation(fields: [templateId], references: [id])
+  templateId      String?
+  templateData    Json?    // To store structured data from templates
 }
  
 model RecordAttachment {
@@ -170,4 +174,14 @@ model RecordAttachment {
   
   clinicalRecord   ClinicalRecord @relation(fields: [clinicalRecordId], references: [id])
   clinicalRecordId String
+}
+
+model ClinicalTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  fields      Json     // Array of { name, label, type, required, options }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  records     ClinicalRecord[]
 }

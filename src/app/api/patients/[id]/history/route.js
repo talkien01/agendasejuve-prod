@@ -58,6 +58,9 @@ export async function POST(req, { params }) {
     const content = formData.get('content');
     const diagnosis = formData.get('diagnosis');
     const treatment = formData.get('treatment');
+    const templateId = formData.get('templateId');
+    const templateDataStr = formData.get('templateData');
+    const templateData = templateDataStr ? JSON.parse(templateDataStr) : null;
     const dateStr = formData.get('date');
     const professionalId = formData.get('professionalId');
     const appointmentId = formData.get('appointmentId');
@@ -77,6 +80,8 @@ export async function POST(req, { params }) {
         date: dateStr ? new Date(dateStr) : new Date(),
         professionalId: professionalId || null,
         appointmentId: appointmentId || null,
+        templateId: templateId || null,
+        templateData: templateData || null,
       },
     });
 
