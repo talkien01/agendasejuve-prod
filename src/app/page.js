@@ -13,6 +13,8 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+import EditAppointmentModal from '@/components/dashboard/EditAppointmentModal';
+
 const STATUS_STYLES = {
   CONFIRMADA: { bg: '#e3f2fd', color: '#1976d2', label: 'Confirmada' },
   PENDIENTE:  { bg: '#fff3e0', color: '#f57c00', label: 'Pendiente' },
@@ -23,6 +25,7 @@ const STATUS_STYLES = {
 export default function Home() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editingAppointment, setEditingAppointment] = useState(null);
 
   useEffect(() => {
     fetchDashboard();
@@ -31,7 +34,7 @@ export default function Home() {
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/dashboard');
+      const res = await fetch('/api/dashboard', { cache: 'no-store' });
       const json = await res.json();
       setData(json);
     } catch (err) {
@@ -114,7 +117,7 @@ export default function Home() {
                         <div className="status-badge" style={{ background: style.bg, color: style.color }}>
                           {style.label}
                         </div>
-                        <button className="icon-btn-small">
+                        <button className="icon-btn-small" onClick={() => setEditingAppointment(app)}>
                           <MoreHorizontal size={16} />
                         </button>
                       </div>
@@ -150,6 +153,21 @@ export default function Home() {
             </div>
           </div>
         </>
+      )}
+
+      {editingAppointment && (
+        <EditAppointmentModal 
+          appointment={editingAppointment} 
+          onClose={() => setEditingAppointment(null)}
+          onSave={(updatedAppointment) => {
+            setEditingAppointment(null);
+            fetchDashboard();
+          }}
+          onDelete={(id) => {
+            setEditingAppointment(null);
+            fetchDashboard();
+          }}
+        />
       )}
 
       <style jsx>{`
