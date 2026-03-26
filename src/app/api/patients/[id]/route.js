@@ -20,6 +20,12 @@ export async function GET(req, { params }) {
     const { id } = await params;
     const patient = await prisma.patient.findUnique({
       where: { id },
+      include: {
+        appointments: {
+          orderBy: { date: 'desc' },
+          take: 1
+        }
+      }
     });
     if (!patient) return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
     return NextResponse.json(patient);

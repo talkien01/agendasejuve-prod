@@ -61,6 +61,8 @@ model Service {
   price        Float?        @default(0)
   category     String?
   appointments Appointment[]
+  template     ClinicalTemplate? @relation(fields: [templateId], references: [id])
+  templateId   String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -181,7 +183,9 @@ model ClinicalTemplate {
   name        String
   description String?
   fields      Json     // Array of { name, label, type, required, options }
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   records     ClinicalRecord[]
+  services    Service[]
 }

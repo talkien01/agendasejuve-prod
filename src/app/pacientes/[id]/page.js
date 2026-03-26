@@ -65,10 +65,27 @@ export default function PatientDetailsPage() {
         fetch(`/api/patients/${params.id}/history`),
         fetch('/api/settings/templates')
       ]);
-      
-      if (pRes.ok) setPatient(await pRes.json());
+      let pData = null, tData = [];
+      if (pRes.ok) {
+        pData = await pRes.json();
+        setPatient(pData);
+      }
       if (hRes.ok) setHistory(await hRes.json());
-      if (tRes.ok) setTemplates(await tRes.json());
+      if (tRes.ok) {
+        tData = await tRes.json();
+        setTemplates(tData);
+      }
+      
+      if (pData && tData.length > 0) {
+        const latestAppt = pData.appointments?.[0];
+        if (latestAppt?.serviceId) {
+          const matchingTemplate = tData.find(t => t.services?.some(s => s.id === latestAppt.serviceId));
+          if (matchingTemplate) {
+            setSelectedTemplate(matchingTemplate);
+            setDynamicData({});
+          }
+        }
+      }
     } catch (error) {
       console.error('Error fetching patient data:', error);
     } finally {
@@ -109,6 +126,15 @@ export default function PatientDetailsPage() {
       console.error('Error creating record:', error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handlePrint = (recordId) => {
+    const el = document.getElementById(`record-item-${recordId}`);
+    if (el) {
+      el.classList.add('print-active');
+      window.print();
+      setTimeout(() => el.classList.remove('print-active'), 500);
     }
   };
 
@@ -177,6 +203,7 @@ export default function PatientDetailsPage() {
                   <div className="form-group">
                     <label>Elegir Plantilla (Opcional)</label>
                     <select 
+                      value={selectedTemplate?.id || ''}
                       onChange={(e) => {
                         const t = templates.find(temp => temp.id === e.target.value);
                         setSelectedTemplate(t || null);
@@ -321,7 +348,7 @@ export default function PatientDetailsPage() {
               </div>
             ) : (
               history.map((record, index) => (
-                <div key={record.id} className="timeline-item">
+                <div key={record.id} id={`record-item-${record.id}`} className="timeline-item">
                   <div className="timeline-marker">
                     <div className="marker-dot"></div>
                   </div>
@@ -333,9 +360,14 @@ export default function PatientDetailsPage() {
                           day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}</span>
                       </div>
-                      <div className="record-prof">
-                        <Stethoscope size={14} />
-                        <span>{record.professional?.name || 'Administrador'}</span>
+                      <div className="record-prof" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                          <Stethoscope size={14} />
+                          <span>{record.professional?.name || 'Administrador'}</span>
+                        </div>
+                        <button onClick={() => handlePrint(record.id)} className="btn-print-icon" title="Exportar a PDF" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', opacity: 0.7 }}>
+                          <FileText size={16} />
+                        </button>
                       </div>
                     </div>
                     <div className="record-body">

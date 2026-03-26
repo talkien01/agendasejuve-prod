@@ -21,15 +21,30 @@ export default function TemplatesPage() {
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
+  const [servicesData, setServicesData] = useState([]);
 
   // Form State
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [fields, setFields] = useState([]);
+  const [selectedServices, setSelectedServices] = useState([]);
 
   useEffect(() => {
     fetchTemplates();
+    fetchServices();
   }, []);
+
+  const fetchServices = async () => {
+    try {
+      const res = await fetch('/api/booking-data');
+      if (res.ok) {
+        const data = await res.json();
+        setServicesData(data.services || []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchTemplates = async () => {
     try {
@@ -79,7 +94,8 @@ export default function TemplatesPage() {
           id: editingTemplate?.id,
           name,
           description,
-          fields
+          fields,
+          serviceIds: selectedServices
         }),
       });
 
@@ -99,11 +115,28 @@ export default function TemplatesPage() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm('¿Estás seguro de que deseas archivar esta plantilla? No se borrarán los expedientes antiguos pero no podrá usarse para nuevos.')) return;
+    
+    try {
+      const res = await fetch(`/api/settings/templates?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Plantilla archivada.' });
+        fetchTemplates();
+      } else {
+        throw new Error('Error al archivar la plantilla');
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message });
+    }
+  };
+
   const handleEdit = (template) => {
     setEditingTemplate(template);
     setName(template.name);
     setDescription(template.description || '');
     setFields(template.fields);
+    setSelectedServices(template.services?.map(s => s.id) || []);
     setShowForm(true);
   };
 
@@ -112,6 +145,7 @@ export default function TemplatesPage() {
     setName('');
     setDescription('');
     setFields([]);
+    setSelectedServices([]);
   };
 
   const getIcon = (type) => {
@@ -177,6 +211,28 @@ export default function TemplatesPage() {
                   onChange={(e) => setDescription(e.target.value)} 
                   placeholder="Pequeña referencia sobre cuándo usar esta plantilla" 
                 />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group full-width">
+                <label>Vincular a Servicios (Por defecto)</label>
+                <div className="services-checkbox-grid">
+                  {servicesData.map(service => (
+                    <label key={service.id} className="service-checkbox-item">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedServices.includes(service.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedServices([...selectedServices, service.id]);
+                          else setSelectedServices(selectedServices.filter(id => id !== service.id));
+                        }}
+                      />
+                      <span>{service.name}</span>
+                    </label>
+                  ))}
+                </div>
+                <p style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>Si vinculas esta plantilla a un servicio, se cargará automáticamente cuando el paciente asista a dicha cita.</p>
               </div>
             </div>
 
@@ -295,8 +351,11 @@ export default function TemplatesPage() {
                     <td><span className="text-muted">{t.description || '-'}</span></td>
                     <td><span className="badge-gray">{t.fields.length} campos</span></td>
                     <td>{new Date(t.createdAt).toLocaleDateString()}</td>
-                    <td>
-                      <button className="action-btn" onClick={() => handleEdit(t)}>Editar</button>
+                    <td className="actions-cell">
+                      <button className="btn-outline-small" onClick={() => handleEdit(t)}>Editar</button>
+                      <button className="btn-icon-danger" onClick={() => handleDelete(t.id)} title="Archivar">
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -442,15 +501,68 @@ export default function TemplatesPage() {
           color: #4b5563;
         }
 
-        .btn-delete {
-          background: none;
-          border: none;
-          color: #ff4d4d;
-          cursor: pointer;
-          opacity: 0.6;
+        .btn-delete:hover { opacity: 1; }
+
+        .actions-cell {
+          display: flex;
+          gap: 8px;
+          align-items: center;
         }
 
-        .btn-delete:hover { opacity: 1; }
+        .btn-outline-small {
+          background: transparent;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 13px;
+          color: #444;
+          cursor: pointer;
+        }
+
+        .btn-outline-small:hover {
+          border-color: #9d00ff;
+          color: #9d00ff;
+        }
+
+        .btn-icon-danger {
+          background: #ffeeee;
+          color: #ff4d4d;
+          border: none;
+          padding: 6px;
+          border-radius: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.2s;
+        }
+
+        .btn-icon-danger:hover {
+          background: #ffcccc;
+        }
+
+        .services-checkbox-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 12px;
+          margin-top: 8px;
+        }
+
+        .service-checkbox-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          cursor: pointer;
+          padding: 8px 12px;
+          background: #f9f9f9;
+          border: 1px solid #eee;
+          border-radius: 8px;
+        }
+
+        .service-checkbox-item:hover {
+          background: #f0f0f0;
+        }
 
         .alert {
           display: flex;

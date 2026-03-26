@@ -492,3 +492,34 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-active, .print-active * {
+    visibility: visible;
+  }
+  
+  .print-active {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .timeline-marker, .section-header, .back-btn, .patient-sidebar, .btn-print-icon {
+    display: none !important;
+  }
+  
+  .record-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0;
+  }
+}

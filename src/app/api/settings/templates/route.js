@@ -8,12 +8,14 @@ export async function GET() {
     if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
     const templates = await prisma.clinicalTemplate.findMany({
+      where: { isActive: true },
+      include: { services: true },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(templates);
   } catch (error) {
     console.error('Fetch templates error:', error);
-    return NextResponse.json({ error: 'Failed to fetch templates', details: error.message, stack: error.stack }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch templates', details: error.message }, { status: 500 });
   }
 }
 
@@ -25,7 +27,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { id, name, description, fields } = body;
+    const { id, name, description, fields, serviceIds = [] } = body;
 
     if (!name || !fields) {
       return NextResponse.json({ error: 'Nombre y campos son obligatorios' }, { status: 400 });
@@ -37,17 +39,51 @@ export async function POST(request) {
         name,
         description,
         fields,
+        services: {
+          set: serviceIds.map(sId => ({ id: sId }))
+        }
       },
       create: {
         name,
         description,
         fields,
+        services: {
+          connect: serviceIds.map(sId => ({ id: sId }))
+        }
       },
+      include: { services: true }
     });
 
     return NextResponse.json(template);
   } catch (error) {
     console.error('Upsert template error:', error);
     return NextResponse.json({ error: 'Failed to save template' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID de plantilla requerido' }, { status: 400 });
+    }
+
+    // Soft delete
+    await prisma.clinicalTemplate.update({
+      where: { id },
+      data: { isActive: false, services: { set: [] } }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Delete template error:', error);
+    return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
   }
 }

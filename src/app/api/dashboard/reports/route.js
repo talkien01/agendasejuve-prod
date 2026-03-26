@@ -132,11 +132,14 @@ export async function GET(req) {
 
     resourceAppointments.forEach(app => {
       if (app.resource) {
-        const type = app.resource.type?.toLowerCase();
-        if (type?.includes('cabina')) cabinaCount++;
-        else if (type?.includes('auditorio')) auditorioCount++;
-        else if (type?.includes('sala')) salaCount++;
-        else if (type?.includes('consultorio')) consultorioCount++;
+        const typeStr = (app.resource.type || '').toLowerCase();
+        const nameStr = (app.resource.name || '').toLowerCase();
+        
+        if (typeStr.includes('cabina') || nameStr.includes('cabina')) cabinaCount++;
+        else if (typeStr.includes('auditorio') || nameStr.includes('auditorio')) auditorioCount++;
+        else if (typeStr.includes('sala') || nameStr.includes('sala')) salaCount++;
+        else if (typeStr.includes('consultorio') || nameStr.includes('consultorio')) consultorioCount++;
+        else salaCount++; // Default to Salas for any other resource types
       }
     });
 
