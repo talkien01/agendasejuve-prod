@@ -99,34 +99,47 @@ export async function POST(request) {
     }
 
     const [y, m, d] = body.date.split('-').map(Number);
-    const localDate = new Date(y, m - 1, d, 0, 0, 0);
+    const isRecurring = body.isRecurring === true;
+    const count = isRecurring ? Math.min(parseInt(body.recurrenceCount) || 1, 12) : 1;
+    const recurrenceId = isRecurring ? crypto.randomUUID() : null;
+    
+    const createdAppointments = [];
 
-    const appointment = await prisma.appointment.create({
-      data: {
-        date: localDate,
-        startTime: body.startTime,
-        endTime: body.endTime,
-        type: body.type,
-        status: body.status || 'PENDIENTE',
-        notes: body.notes,
-        patientId: body.patientId,
-        professionalId: body.professionalId || null,
-        resourceId: body.resourceId || null,
-        localId: body.localId || null,
-      },
-      include: {
-        patient: true,
-        resource: true,
-        professional: true,
+    for (let i = 0; i < count; i++) {
+      const instanceDate = new Date(y, m - 1, d + (i * 7), 0, 0, 0);
+      
+      const appointment = await prisma.appointment.create({
+        data: {
+          date: instanceDate,
+          startTime: body.startTime,
+          endTime: body.endTime,
+          type: body.type,
+          status: body.status || 'PENDIENTE',
+          notes: body.notes,
+          patientId: body.patientId,
+          professionalId: body.professionalId || null,
+          resourceId: body.resourceId || null,
+          localId: body.localId || null,
+          recurrenceId: recurrenceId,
+        },
+        include: {
+          patient: true,
+          resource: true,
+          professional: true,
+        }
+      });
+      
+      createdAppointments.push(appointment);
+
+      // Trigger notification ONLY for the first one to avoid spam
+      if (i === 0) {
+        sendAppointmentConfirmation(appointment.id).catch(err => {
+          console.error('Error triggering notification:', err);
+        });
       }
-    });
+    }
 
-    // Trigger notification asynchronously
-    sendAppointmentConfirmation(appointment.id).catch(err => {
-      console.error('Error triggering notification:', err);
-    });
-
-    return NextResponse.json(appointment);
+    return NextResponse.json(isRecurring ? createdAppointments[0] : createdAppointments[0]);
   } catch (error) {
     console.error('Create appointment error:', error);
     return NextResponse.json({ error: 'Failed to create appointment' }, { status: 500 });

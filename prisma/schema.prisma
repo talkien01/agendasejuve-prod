@@ -103,8 +103,9 @@ model Appointment {
 
   local       Local?   @relation(fields: [localId], references: [id])
   localId     String?
-
+ 
   reminderSent Boolean @default(false)
+  recurrenceId String? // To group recurring instances
   notifications Notification[]
   clinicalRecord ClinicalRecord?
 }
@@ -155,4 +156,18 @@ model ClinicalRecord {
   
   appointment     Appointment? @relation(fields: [appointmentId], references: [id])
   appointmentId   String?      @unique
+  
+  attachments     RecordAttachment[]
+}
+ 
+model RecordAttachment {
+  id               String   @id @default(cuid())
+  createdAt        DateTime @default(now())
+  name             String
+  url              String
+  type             String
+  size             Int
+  
+  clinicalRecord   ClinicalRecord @relation(fields: [clinicalRecordId], references: [id])
+  clinicalRecordId String
 }

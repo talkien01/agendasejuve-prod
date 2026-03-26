@@ -120,6 +120,35 @@ export default function AppointmentModal({
             <label>Notas</label>
             <textarea name="notes" rows={3} placeholder="Observaciones..." value={form.notes} onChange={handleFormChange} />
           </div>
+
+          <div className="form-group recurrence-group" style={{ marginTop: '10px', padding: '12px', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #eee' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '600', color: '#0070f3' }}>
+              <input 
+                type="checkbox" 
+                name="isRecurring" 
+                checked={form.isRecurring || false} 
+                onChange={handleFormChange}
+                style={{ width: 'auto', margin: 0 }}
+              />
+              <span>¿Repetir cita semanalmente?</span>
+            </label>
+            
+            {form.isRecurring && (
+              <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px', animation: 'fadeIn 0.3s ease' }}>
+                <span style={{ fontSize: '13px' }}>Repetir por:</span>
+                <input 
+                  type="number" 
+                  name="recurrenceCount" 
+                  min="2" 
+                  max="12" 
+                  value={form.recurrenceCount || 4} 
+                  onChange={handleFormChange}
+                  style={{ width: '60px', padding: '4px 8px' }}
+                />
+                <span style={{ fontSize: '13px' }}>semanas totales</span>
+              </div>
+            )}
+          </div>
         </div>
         <div className="modal-footer">
           <button className="btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>

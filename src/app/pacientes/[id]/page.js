@@ -14,7 +14,10 @@ import {
   ClipboardList,
   Loader2,
   Save,
-  Clock
+  Clock,
+  Paperclip,
+  FileIcon,
+  Download
 } from 'lucide-react';
 import './patient-details.css';
 
@@ -32,6 +35,7 @@ export default function PatientDetailsPage() {
     content: '',
     treatment: ''
   });
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -59,15 +63,24 @@ export default function PatientDetailsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const formData = new FormData();
+      formData.append('diagnosis', newRecord.diagnosis);
+      formData.append('content', newRecord.content);
+      formData.append('treatment', newRecord.treatment);
+      
+      selectedFiles.forEach(file => {
+        formData.append('files', file);
+      });
+
       const res = await fetch(`/api/patients/${params.id}/history`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRecord)
+        body: formData
       });
       
       if (res.ok) {
         setIsAdding(false);
         setNewRecord({ diagnosis: '', content: '', treatment: '' });
+        setSelectedFiles([]);
         fetchData();
       }
     } catch (error) {
@@ -167,6 +180,23 @@ export default function PatientDetailsPage() {
                     placeholder="Opcional: Próximos pasos o tareas para el paciente..."
                   />
                 </div>
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Paperclip size={16} />
+                    <span>Adjuntar archivos (Imágenes, PDFs...)</span>
+                  </label>
+                  <input 
+                    type="file" 
+                    multiple 
+                    onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
+                    style={{ marginTop: '5px' }}
+                  />
+                  {selectedFiles.length > 0 && (
+                    <div style={{ marginTop: '8px', fontSize: '13px', color: '#666' }}>
+                      {selectedFiles.length} archivo(s) seleccionado(s)
+                    </div>
+                  )}
+                </div>
                 <div className="form-actions">
                   <button type="button" className="btn-ghost" onClick={() => setIsAdding(false)}>Cancelar</button>
                   <button type="submit" className="btn-save" disabled={isSubmitting}>
@@ -210,6 +240,43 @@ export default function PatientDetailsPage() {
                         <div className="record-treatment">
                           <strong>Tratamiento:</strong>
                           <p>{record.treatment}</p>
+                        </div>
+                      )}
+                      
+                      {record.attachments && record.attachments.length > 0 && (
+                        <div className="record-attachments" style={{ marginTop: '15px', paddingTop: '10px', borderTop: '1px solid #f0f0f0' }}>
+                          <span style={{ fontSize: '12px', fontWeight: '700', color: '#888', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
+                            Archivos adjuntos:
+                          </span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                            {record.attachments.map(att => (
+                              <a 
+                                key={att.id} 
+                                href={att.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="attachment-link"
+                                style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '8px', 
+                                  padding: '6px 12px', 
+                                  background: '#f8f9fa', 
+                                  border: '1px solid #eee', 
+                                  borderRadius: '8px',
+                                  fontSize: '13px',
+                                  textDecoration: 'none',
+                                  color: '#0070f3'
+                                }}
+                              >
+                                {att.type.startsWith('image/') ? <FileIcon size={14} /> : <FileText size={14} />}
+                                <span style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {att.name}
+                                </span>
+                                <Download size={12} />
+                              </a>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>

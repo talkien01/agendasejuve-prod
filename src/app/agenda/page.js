@@ -52,8 +52,13 @@ export default function AgendaPage() {
   
   const [form, setForm] = useState({
     patientId: '', professionalId: '', resourceId: '', type: 'Cita',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    startTime: '09:00', endTime: '10:00', status: 'PENDIENTE', notes: '',
+    date: '',
+    startTime: '',
+    endTime: '',
+    status: 'PENDIENTE',
+    notes: '',
+    isRecurring: false,
+    recurrenceCount: 4
   });
 
   useEffect(() => {
@@ -135,11 +140,13 @@ export default function AgendaPage() {
   };
 
   const handleFormChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const val = type === 'checkbox' ? checked : value;
+    
     setForm(prev => {
-      const updated = { ...prev, [name]: value };
+      const updated = { ...prev, [name]: val };
       
-      if (name === 'startTime' && value) {
+      if (name === 'startTime' && val) {
         const [h, m] = value.split(':');
         let nextH = parseInt(h, 10) + 1;
         if (nextH >= 24) nextH = 0;
