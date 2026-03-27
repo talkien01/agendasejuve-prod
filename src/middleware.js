@@ -14,6 +14,7 @@ export async function middleware(request) {
     pathname.startsWith('/api/auth/login') ||
     pathname.startsWith('/api/booking-data') ||
     pathname.startsWith('/api/diag') ||
+    pathname.startsWith('/api/debug-templates') ||
     pathname.startsWith('/api/investigate') ||
     pathname.startsWith('/api/jobs') ||
     pathname.startsWith('/api/reservar') ||
@@ -39,5 +40,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/((?!api/auth/login|api/diag|api/seed|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api/auth/login|api/diag|api/debug-templates|api/seed|_next/static|_next/image|favicon.ico).*)'],
 };

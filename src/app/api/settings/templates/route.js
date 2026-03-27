@@ -3,10 +3,16 @@ import prisma from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 export async function GET(request) {
+  let session;
   try {
-    const session = await getSession();
-    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    session = await getSession();
+  } catch (e) {
+    // JWT expired or invalid - treat as unauthenticated
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+  if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
+  try {
     const { searchParams } = new URL(request.url);
     const showAll = searchParams.get('all') === 'true';
 
@@ -17,7 +23,7 @@ export async function GET(request) {
     });
     return NextResponse.json(templates);
   } catch (error) {
-    console.error('Fetch templates error:', error);
+    console.error('[templates GET] Error:', error.message);
     return NextResponse.json({ error: 'Failed to fetch templates', details: error.message }, { status: 500 });
   }
 }

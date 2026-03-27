@@ -52,9 +52,10 @@ export default function TemplatesPage() {
       const url = includeArchived ? '/api/settings/templates?all=true' : '/api/settings/templates';
       const res = await fetch(url);
       const data = await res.json();
-      setTemplates(data);
+      setTemplates(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching templates:', error);
+      setTemplates([]);
     } finally {
       setLoading(false);
     }
