@@ -27,7 +27,7 @@ import {
   Cell 
 } from 'recharts';
 
-const COLORS = ['#9d00ff', '#d946ef', '#f472b6', '#a855f7', '#ec4899', '#c084fc'];
+const COLORS = ['#6d28d9', '#7c3aed', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
 
 export default function ReportsPage() {
   const [data, setData] = useState(null);
@@ -100,10 +100,11 @@ export default function ReportsPage() {
   };
 
   const getKpiGradient = (name) => {
-    if (name.includes('Asistencia')) return 'linear-gradient(135deg, #a855f7 0%, #d946ef 100%)';
-    if (name.includes('Reservas')) return 'linear-gradient(135deg, #8b5cf6 0%, #c084fc 100%)';
-    if (name.includes('Usuarios')) return 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)';
-    return 'linear-gradient(135deg, #9d00ff 0%, #d946ef 100%)';
+    if (name.includes('Asistencia')) return 'linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%)';
+    if (name.includes('Ingresos')) return 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)';
+    if (name.includes('Retención')) return 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)';
+    if (name.includes('Reservas')) return 'linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%)';
+    return 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)';
   };
 
   return (
@@ -130,7 +131,7 @@ export default function ReportsPage() {
         {kpis.map((kpi) => (
           <div key={kpi.name} className="card kpi-card-glass" style={{ borderLeft: `4px solid ${kpi.color}` }}>
             <div className="kpi-header">
-              <TrendingUp size={24} color={kpi.color || '#9d00ff'} />
+              <TrendingUp size={24} color={kpi.color || '#7c3aed'} />
               <span className="kpi-name">{kpi.name}</span>
             </div>
             <div className="kpi-body">
@@ -153,8 +154,8 @@ export default function ReportsPage() {
               <BarChart data={monthlyBookings} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="barTechGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="5%" stopColor="#9d00ff" stopOpacity={0.9}/>
-                    <stop offset="95%" stopColor="#d946ef" stopOpacity={0.7}/>
+                    <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#a78bfa" stopOpacity={0.7}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(109, 40, 217, 0.1)" />
@@ -170,7 +171,7 @@ export default function ReportsPage() {
                     backdropFilter: 'blur(8px)',
                     padding: '12px'
                   }}
-                  itemStyle={{ fontWeight: 700, color: '#9d00ff' }}
+                  itemStyle={{ fontWeight: 700, color: '#7c3aed' }}
                 />
                 <Bar 
                   dataKey="value" 
@@ -274,7 +275,7 @@ export default function ReportsPage() {
           gap: 24px;
           padding-bottom: 40px;
           animation: fadeIn 0.8s ease-out;
-          background: radial-gradient(circle at top left, rgba(217, 70, 239, 0.05), transparent 40%),
+          background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.05), transparent 40%),
                       radial-gradient(circle at bottom right, rgba(109, 40, 217, 0.05), transparent 40%);
         }
 
@@ -326,8 +327,8 @@ export default function ReportsPage() {
           background: white;
           transform: translateY(-2px);
           box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-          border-color: #9d00ff;
-          color: #9d00ff;
+          border-color: #7c3aed;
+          color: #7c3aed;
         }
 
         .period-picker {

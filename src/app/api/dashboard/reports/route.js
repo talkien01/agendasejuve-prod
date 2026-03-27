@@ -152,10 +152,10 @@ export async function GET(req) {
 
     return NextResponse.json({
       kpis: [
-        { name: 'Asistencia', value: `${attendanceRate}%`, color: '#4CAF50' },
-        { name: 'Ingresos (30d)', value: `$${totalRevenue.toLocaleString()}`, color: '#FFD700' },
-        { name: 'Retención', value: `${retentionRate}%`, color: '#9C27B0' },
-        { name: 'Reservas (30d)', value: newBookings.toString(), color: '#9d00ff' },
+        { name: 'Asistencia', value: `${attendanceRate}%`, color: '#6d28d9' },     // violet-700
+        { name: 'Ingresos (30d)', value: `$${totalRevenue.toLocaleString()}`, color: '#7c3aed' }, // violet-600
+        { name: 'Retención', value: `${retentionRate}%`, color: '#8b5cf6' },       // violet-500
+        { name: 'Reservas (30d)', value: newBookings.toString(), color: '#a78bfa' },// violet-400
       ],
       monthlyBookings,
       serviceDist,
