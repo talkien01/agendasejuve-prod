@@ -40,7 +40,7 @@ function parseTemplate(template, data) {
   return result;
 }
 
-export async function sendNotification({ type, recipient, content, appointmentId, title = 'Notificación', buttons = [] }) {
+export async function sendNotification({ type, recipient, content, appointmentId, title = 'Notificación' }) {
   let status = 'PENDING';
   let errorMsg = null;
 
@@ -55,32 +55,17 @@ export async function sendNotification({ type, recipient, content, appointmentId
       let cleanPhone = recipient.replace(/\D/g, '');
       if (cleanPhone.length === 10) cleanPhone = `52${cleanPhone}`;
       
-      let endpoint = `${baseUrl}/message/sendText/${evolutionInstance}`;
-      let body = { number: cleanPhone, text: content };
-
-      // Support for Buttons (EvolutionAPI v2)
-      if (buttons && buttons.length > 0) {
-        endpoint = `${baseUrl}/message/sendButtons/${evolutionInstance}`;
-        body = {
-          number: cleanPhone,
-          title: title,
-          description: content,
-          footer: 'SEJUVE Citas',
-          buttons: buttons.map((btn, index) => ({
-            buttonId: btn.id || `btn-${index}`,
-            buttonText: { displayText: btn.text },
-            type: 1 // Reply Button
-          }))
-        };
-      }
-
-      const response = await fetch(endpoint, {
+      // Standard Text Message for maximum compatibility
+      const response = await fetch(`${baseUrl}/message/sendText/${evolutionInstance}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': evolutionApiKey
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({
+          number: cleanPhone,
+          text: content
+        })
       });
 
       if (!response.ok) {
@@ -145,19 +130,13 @@ export async function sendAppointmentConfirmation(appointmentId) {
   });
 
   const results = [];
-  const waButtons = [
-    { id: 'confirm', text: 'Confirmar Asistencia' },
-    { id: 'reschedule', text: 'Reagendar' }
-  ];
-
   if (app.patient.notifyWhatsapp && app.patient.phone) {
     results.push(await sendNotification({
       type: 'WHATSAPP',
       recipient: app.patient.phone,
       content: message,
       appointmentId,
-      title: 'Confirmación de Cita',
-      buttons: waButtons
+      title: 'Confirmación de Cita'
     }));
   }
 
@@ -191,17 +170,14 @@ export async function sendAppointmentReminder(appointment) {
     place: place
   });
 
-  const waButtons = [{ id: 'confirm', text: 'Confirmar' }, { id: 'cancel', text: 'Cancelar' }];
   const results = [];
-
   if (patient.notifyWhatsapp && patient.phone) {
     results.push(await sendNotification({
       type: 'WHATSAPP',
       recipient: patient.phone,
       content,
       appointmentId: appointment.id,
-      title: 'Recordatorio',
-      buttons: waButtons
+      title: 'Recordatorio'
     }));
   }
 
@@ -237,14 +213,12 @@ export async function sendAppointmentFollowUp(appointmentId, isNoShow = false) {
 
   const results = [];
   if (app.patient.notifyWhatsapp && app.patient.phone) {
-    const waButtons = isNoShow ? [{ id: 'reschedule', text: 'Reagendar Cita' }] : [];
     results.push(await sendNotification({
       type: 'WHATSAPP',
       recipient: app.patient.phone,
       content: message,
       appointmentId,
-      title: isNoShow ? 'Te extrañamos' : 'Gracias por tu visita',
-      buttons: waButtons
+      title: isNoShow ? 'Te extrañamos' : 'Gracias por tu visita'
     }));
   }
 
