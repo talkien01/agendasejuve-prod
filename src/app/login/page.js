@@ -118,7 +118,7 @@ export default function LoginPage() {
         }
 
         .logo-placeholder {
-          background: rgba(157, 0, 255, 0.1);
+          background: rgba(109, 40, 217, 0.1);
           width: 64px;
           height: 64px;
           border-radius: 16px;

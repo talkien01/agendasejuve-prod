@@ -157,15 +157,15 @@ export default function ReportsPage() {
                     <stop offset="95%" stopColor="#d946ef" stopOpacity={0.7}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(157, 0, 255, 0.1)" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(109, 40, 217, 0.1)" />
                 <XAxis type="number" hide />
                 <YAxis dataKey="label" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#666' }} width={80} />
                 <Tooltip 
-                  cursor={{ fill: 'rgba(157,0,255,0.05)' }}
+                  cursor={{ fill: 'rgba(109, 40, 217,0.05)' }}
                   contentStyle={{ 
                     borderRadius: '16px', 
-                    border: '1px solid rgba(157, 0, 255, 0.2)', 
-                    boxShadow: '0 10px 30px rgba(157,0,255,0.1)',
+                    border: '1px solid rgba(109, 40, 217, 0.2)', 
+                    boxShadow: '0 10px 30px rgba(109, 40, 217,0.1)',
                     background: 'rgba(255,255,255,0.9)',
                     backdropFilter: 'blur(8px)',
                     padding: '12px'
@@ -213,8 +213,8 @@ export default function ReportsPage() {
                   <Tooltip 
                     contentStyle={{ 
                       borderRadius: '16px', 
-                      border: '1px solid rgba(157, 0, 255, 0.2)', 
-                      boxShadow: '0 10px 30px rgba(157,0,255,0.1)',
+                      border: '1px solid rgba(109, 40, 217, 0.2)', 
+                      boxShadow: '0 10px 30px rgba(109, 40, 217,0.1)',
                       background: 'rgba(255,255,255,0.9)'
                     }}
                   />
@@ -254,8 +254,8 @@ export default function ReportsPage() {
                   <Tooltip 
                     contentStyle={{ 
                       borderRadius: '16px', 
-                      border: '1px solid rgba(157, 0, 255, 0.2)', 
-                      boxShadow: '0 10px 30px rgba(157,0,255,0.1)',
+                      border: '1px solid rgba(109, 40, 217, 0.2)', 
+                      boxShadow: '0 10px 30px rgba(109, 40, 217,0.1)',
                       background: 'rgba(255,255,255,0.9)'
                     }}
                   />
@@ -275,7 +275,7 @@ export default function ReportsPage() {
           padding-bottom: 40px;
           animation: fadeIn 0.8s ease-out;
           background: radial-gradient(circle at top left, rgba(217, 70, 239, 0.05), transparent 40%),
-                      radial-gradient(circle at bottom right, rgba(157, 0, 255, 0.05), transparent 40%);
+                      radial-gradient(circle at bottom right, rgba(109, 40, 217, 0.05), transparent 40%);
         }
 
         @keyframes fadeIn {
@@ -414,7 +414,7 @@ export default function ReportsPage() {
         .kpi-visual {
           width: 50%;
           height: 4px;
-          background: rgba(157, 0, 255, 0.1);
+          background: rgba(109, 40, 217, 0.1);
           border-radius: 10px;
           margin-top: auto;
           overflow: hidden;

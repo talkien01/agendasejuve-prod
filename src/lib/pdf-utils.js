@@ -75,7 +75,7 @@ export const generateClinicalRecordPDF = (patient, record, professional) => {
     head: [['Campo', 'Información']],
     body: contentBody,
     theme: 'striped',
-    headStyles: { fillColor: [157, 0, 255] },
+    headStyles: { fillColor: [109, 40, 217] },
     margin: { left: 15, right: 15 },
     styles: { overflow: 'linebreak', cellPadding: 5 }
   });

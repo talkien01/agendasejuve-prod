@@ -20,13 +20,20 @@ export async function GET() {
       });
       if (waRes.ok) {
         const data = await waRes.json();
+        // Handle both EvolutionAPI v1 (nested) and v2 (flat) response formats
         const instance = Array.isArray(data)
-          ? data.find(i => i.instance?.instanceName === process.env.WHATSAPP_INSTANCE)
+          ? data.find(i => (i.instance?.instanceName || i.name) === process.env.WHATSAPP_INSTANCE)
           : null;
-        if (instance && instance.instance?.state === 'open') {
-          results.whatsapp = { status: 'ok', message: `Instancia "${process.env.WHATSAPP_INSTANCE}" conectada` };
+          
+        if (instance) {
+          const state = instance.instance?.state || instance.connectionStatus?.toLowerCase() || 'desconocido';
+          if (state === 'open') {
+            results.whatsapp = { status: 'ok', message: `Instancia "${process.env.WHATSAPP_INSTANCE}" conectada` };
+          } else {
+            results.whatsapp = { status: 'warning', message: `Instancia encontrada pero estado: ${state}` };
+          }
         } else {
-          results.whatsapp = { status: 'warning', message: `Instancia encontrada pero estado: ${instance?.instance?.state || 'desconocido'}` };
+          results.whatsapp = { status: 'error', message: `Instancia no encontrada` };
         }
       } else {
         results.whatsapp = { status: 'error', message: `Error HTTP ${waRes.status} al conectar con la API` };

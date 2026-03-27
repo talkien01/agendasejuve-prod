@@ -145,7 +145,7 @@ export default function SettingsLayout({ children }) {
         }
 
         .category-item.active {
-          background: rgba(157, 0, 255, 0.1);
+          background: rgba(109, 40, 217, 0.1);
           color: var(--brand-primary);
           font-weight: 600;
         }

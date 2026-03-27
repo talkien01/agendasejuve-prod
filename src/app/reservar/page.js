@@ -660,7 +660,7 @@ export default function ReservarPage() {
         .service-card:hover {
           border-color: #9d00ff;
           transform: translateY(-4px);
-          box-shadow: 0 12px 24px rgba(157, 0, 255,0.08);
+          box-shadow: 0 12px 24px rgba(109, 40, 217,0.08);
         }
 
         .service-info h4 {
@@ -785,13 +785,13 @@ export default function ReservarPage() {
           background-color: #9d00ff;
           color: white;
           border-color: #9d00ff;
-          box-shadow: 0 8px 20px rgba(157, 0, 255,0.3);
+          box-shadow: 0 8px 20px rgba(109, 40, 217,0.3);
           transform: scale(1.05);
         }
 
         .day-card:hover:not(.selected) {
           border-color: #9d00ff;
-          background-color: rgba(157, 0, 255,0.02);
+          background-color: rgba(109, 40, 217,0.02);
         }
 
         .day-name {
@@ -835,7 +835,7 @@ export default function ReservarPage() {
         .time-btn:hover {
           border-color: #9d00ff;
           color: #9d00ff;
-          background-color: rgba(157, 0, 255,0.02);
+          background-color: rgba(109, 40, 217,0.02);
           transform: translateY(-2px);
         }
 
@@ -977,7 +977,7 @@ export default function ReservarPage() {
         .input-with-icon input:focus {
           border-color: #9d00ff;
           background: white;
-          box-shadow: 0 0 0 4px rgba(157, 0, 255,0.1);
+          box-shadow: 0 0 0 4px rgba(109, 40, 217,0.1);
         }
 
         .agendar-btn {
@@ -990,13 +990,13 @@ export default function ReservarPage() {
           font-weight: 700;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 8px 24px rgba(157, 0, 255,0.2);
+          box-shadow: 0 8px 24px rgba(109, 40, 217,0.2);
         }
 
         .agendar-btn:hover {
           background: #7e00cc;
           transform: translateY(-2px);
-          box-shadow: 0 12px 32px rgba(157, 0, 255,0.3);
+          box-shadow: 0 12px 32px rgba(109, 40, 217,0.3);
         }
 
         .full-width {

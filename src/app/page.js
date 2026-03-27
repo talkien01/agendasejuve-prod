@@ -222,7 +222,7 @@ export default function Home() {
           border-color: #9d00ff;
           color: #9d00ff;
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(157, 0, 255,0.1);
+          box-shadow: 0 4px 12px rgba(109, 40, 217,0.1);
         }
 
         .loading-state {
@@ -319,12 +319,12 @@ export default function Home() {
           text-decoration: none;
           padding: 6px 12px;
           border-radius: 8px;
-          background: rgba(157, 0, 255,0.05);
+          background: rgba(109, 40, 217,0.05);
           transition: all 0.2s;
         }
 
         .text-btn:hover {
-          background: rgba(157, 0, 255,0.1);
+          background: rgba(109, 40, 217,0.1);
           transform: translateX(4px);
         }
 

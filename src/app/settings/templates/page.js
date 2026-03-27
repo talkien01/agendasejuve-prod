@@ -466,7 +466,7 @@ export default function TemplatesPage() {
           font-size: 10px;
           font-weight: 800;
           color: #9d00ff;
-          background: rgba(157, 0, 255, 0.1);
+          background: rgba(109, 40, 217, 0.1);
           padding: 2px 8px;
           border-radius: 4px;
         }

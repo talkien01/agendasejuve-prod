@@ -62,7 +62,7 @@
   font-weight: 800;
   color: white;
   margin-bottom: 20px;
-  box-shadow: 0 8px 15px rgba(0,183,255,0.3);
+  box-shadow: 0 8px 15px rgba(124, 58, 237,0.3);
 }
 
 .patient-card-main h2 {
@@ -136,13 +136,13 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 10px rgba(157, 0, 255,0.2);
+  box-shadow: 0 4px 10px rgba(109, 40, 217,0.2);
 }
 
 .btn-primary:hover, .btn-save:hover {
   background: #009BD9;
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(157, 0, 255,0.3);
+  box-shadow: 0 6px 15px rgba(109, 40, 217,0.3);
 }
 
 .form-card {
@@ -241,7 +241,7 @@
   height: 10px;
   background: #9d00ff;
   border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(157, 0, 255,0.1);
+  box-shadow: 0 0 0 4px rgba(109, 40, 217,0.1);
 }
 
 .record-card {
@@ -395,7 +395,7 @@
 .template-select:focus {
   border-color: #9d00ff;
   background-color: white;
-  box-shadow: 0 0 0 3px rgba(157, 0, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
 }
 
 .dynamic-fields-container {
