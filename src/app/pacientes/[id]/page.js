@@ -20,6 +20,7 @@ import {
   Download
 } from 'lucide-react';
 import './patient-details.css';
+import { generateClinicalRecordPDF } from '@/lib/pdf-utils';
 
 export default function PatientDetailsPage() {
   const params = useParams();
@@ -129,13 +130,8 @@ export default function PatientDetailsPage() {
     }
   };
 
-  const handlePrint = (recordId) => {
-    const el = document.getElementById(`record-item-${recordId}`);
-    if (el) {
-      el.classList.add('print-active');
-      window.print();
-      setTimeout(() => el.classList.remove('print-active'), 500);
-    }
+  const handlePrint = (record) => {
+    generateClinicalRecordPDF(patient, record, record.professional);
   };
 
   if (loading) {
@@ -365,8 +361,8 @@ export default function PatientDetailsPage() {
                           <Stethoscope size={14} />
                           <span>{record.professional?.name || 'Administrador'}</span>
                         </div>
-                        <button onClick={() => handlePrint(record.id)} className="btn-print-icon" title="Exportar a PDF" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', opacity: 0.7 }}>
-                          <FileText size={16} />
+                        <button onClick={() => handlePrint(record)} className="btn-print-icon" title="Exportar a PDF" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', opacity: 1, backgroundColor: '#f0e6ff', padding: '6px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                          <FileText size={16} color="#9d00ff" />
                         </button>
                       </div>
                     </div>

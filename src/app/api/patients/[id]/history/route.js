@@ -88,38 +88,48 @@ export async function POST(req, { params }) {
     // Handle File Saving
     const attachments = [];
     if (files && files.length > 0) {
-      const uploadDir = join(process.cwd(), 'public', 'uploads', 'clinical-records', id);
-      await mkdir(uploadDir, { recursive: true });
+      try {
+        const uploadDir = join(process.cwd(), 'public', 'uploads', 'clinical-records', id);
+        await mkdir(uploadDir, { recursive: true });
 
-      for (const file of files) {
-        if (file instanceof File && file.size > 0) {
-          const buffer = Buffer.from(await file.arrayBuffer());
-          const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
-          const filePath = join(uploadDir, fileName);
-          const relativeUrl = `/uploads/clinical-records/${id}/${fileName}`;
-          
-          await writeFile(filePath, buffer);
+        for (const file of files) {
+          if (file instanceof File && file.size > 0) {
+            const buffer = Buffer.from(await file.arrayBuffer());
+            const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+            const filePath = join(uploadDir, fileName);
+            const relativeUrl = `/uploads/clinical-records/${id}/${fileName}`;
+            
+            await writeFile(filePath, buffer);
 
-          const attachment = await prisma.recordAttachment.create({
-            data: {
-              name: file.name,
-              url: relativeUrl,
-              type: file.type,
-              size: file.size,
-              clinicalRecordId: record.id
-            }
-          });
-          attachments.push(attachment);
+            const attachment = await prisma.recordAttachment.create({
+              data: {
+                name: file.name,
+                url: relativeUrl,
+                type: file.type,
+                size: file.size,
+                clinicalRecordId: record.id
+              }
+            });
+            attachments.push(attachment);
+          }
         }
+      } catch (fileError) {
+        console.error('FILE UPLOAD ERROR:', fileError);
+        // We don't fail the whole request if files fail, just log it
+        // Or we could return a partial success, but for now we log.
       }
     }
 
     return NextResponse.json({ ...record, attachments });
   } catch (error) {
     console.error('CREATE HISTORY ERROR:', error);
+    // Determine if it is a Prisma error
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: 'Unicidad violada en los datos' }, { status: 400 });
+    }
     return NextResponse.json({ 
-      error: 'Failed to create clinical record', 
-      details: error.message 
+      error: 'Error al crear el registro clínico', 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
     }, { status: 500 });
   }
 }
