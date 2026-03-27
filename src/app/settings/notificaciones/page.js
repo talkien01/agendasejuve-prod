@@ -10,13 +10,16 @@ import {
   Clock, 
   RefreshCcw,
   Search,
-  Filter
+  Wifi,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function NotificationLogsPage() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [healthCheck, setHealthCheck] = useState(null);
+  const [healthLoading, setHealthLoading] = useState(false);
 
   const fetchLogs = async () => {
     try {
@@ -31,6 +34,19 @@ export default function NotificationLogsPage() {
     }
   };
 
+  const runHealthCheck = async () => {
+    setHealthLoading(true);
+    try {
+      const res = await fetch('/api/admin/check-notifications');
+      const data = await res.json();
+      setHealthCheck(data);
+    } catch (e) {
+      setHealthCheck({ error: e.message });
+    } finally {
+      setHealthLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchLogs();
   }, []);
@@ -40,6 +56,13 @@ export default function NotificationLogsPage() {
     log.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const StatusIcon = ({ status }) => {
+    if (status === 'ok') return <CheckCircle2 size={16} color="#16a34a" />;
+    if (status === 'warning') return <AlertTriangle size={16} color="#d97706" />;
+    if (status === 'error') return <XCircle size={16} color="#dc2626" />;
+    return <Clock size={16} color="#9ca3af" />;
+  };
+
   return (
     <div className="notif-container">
       <div className="page-header">
@@ -47,11 +70,41 @@ export default function NotificationLogsPage() {
           <h1>Log de Notificaciones</h1>
           <p>Monitorea el estado de los envíos por WhatsApp y Correo</p>
         </div>
-        <button className="btn-outline" onClick={fetchLogs}>
-          <RefreshCcw size={18} className={loading ? 'animate-spin' : ''} />
-          <span>Actualizar</span>
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn-health" onClick={runHealthCheck} disabled={healthLoading}>
+            <Wifi size={16} className={healthLoading ? 'animate-spin' : ''} />
+            <span>{healthLoading ? 'Verificando...' : 'Health Check'}</span>
+          </button>
+          <button className="btn-outline" onClick={fetchLogs}>
+            <RefreshCcw size={18} className={loading ? 'animate-spin' : ''} />
+            <span>Actualizar</span>
+          </button>
+        </div>
       </div>
+
+      {healthCheck && (
+        <div className="health-panel">
+          <h3 style={{ marginBottom: '14px', fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>Estado de Servicios</h3>
+          <div className="health-grid">
+            <div className={`health-item ${healthCheck.whatsapp?.status}`}>
+              <MessageSquare size={20} />
+              <div>
+                <strong>WhatsApp (EvolutionAPI)</strong>
+                <p>{healthCheck.whatsapp?.message || 'Sin información'}</p>
+              </div>
+              <StatusIcon status={healthCheck.whatsapp?.status} />
+            </div>
+            <div className={`health-item ${healthCheck.email?.status}`}>
+              <Mail size={20} />
+              <div>
+                <strong>Gmail / Correo</strong>
+                <p>{healthCheck.email?.message || 'Sin información'}</p>
+              </div>
+              <StatusIcon status={healthCheck.email?.status} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="filter-bar">
         <div className="search-box">
@@ -142,7 +195,61 @@ export default function NotificationLogsPage() {
           font-weight: 600;
         }
 
-        .filter-bar {
+        .btn-health {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          background: var(--brand-subtle);
+          border: 1px solid #ddd6fe;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+          color: var(--brand-primary);
+          transition: all 0.2s;
+        }
+
+        .btn-health:hover { background: #ddd6fe; }
+        .btn-health:disabled { opacity: 0.6; cursor: default; }
+
+        .health-panel {
+          background: white;
+          border: 1px solid var(--border-color);
+          border-radius: 16px;
+          padding: 20px 24px;
+          box-shadow: var(--shadow-sm);
+        }
+
+        .health-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+
+        .health-item {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 16px;
+          border-radius: 12px;
+          border: 1px solid transparent;
+          font-size: 14px;
+        }
+
+        .health-item strong { display: block; font-size: 14px; margin-bottom: 2px; }
+        .health-item p { font-size: 12px; color: var(--text-secondary); margin: 0; }
+        .health-item > div { flex: 1; }
+        .health-item > svg:first-child { flex-shrink: 0; color: var(--text-secondary); }
+
+        .health-item.ok { background: #f0fdf4; border-color: #bbf7d0; }
+        .health-item.ok strong { color: #16a34a; }
+        .health-item.warning { background: #fffbeb; border-color: #fde68a; }
+        .health-item.warning strong { color: #d97706; }
+        .health-item.error { background: #fef2f2; border-color: #fecaca; }
+        .health-item.error strong { color: #dc2626; }
+        .health-item.unknown { background: #f9fafb; border-color: #e5e7eb; }
+
+        .log-card {
           display: flex;
           gap: 16px;
         }

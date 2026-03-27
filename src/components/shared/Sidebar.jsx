@@ -229,11 +229,11 @@ export default function Sidebar() {
         }
 
         .promo-box {
-          background: linear-gradient(to right bottom, #fff0f5, #e0ffff);
+          background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
           padding: 16px;
-          border-radius: 8px;
+          border-radius: 12px;
           text-align: center;
-          border: 1px solid rgba(0,0,0,0.05);
+          border: 1px solid #ddd6fe;
         }
 
         .promo-icon {

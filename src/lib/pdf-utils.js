@@ -12,7 +12,7 @@ export const generateClinicalRecordPDF = (patient, record, professional) => {
   const pageWidth = doc.internal.pageSize.getWidth();
   
   // --- Header ---
-  doc.setFillColor(157, 0, 255); // Purple/Tech Accent
+  doc.setFillColor(124, 58, 237); // Violet-600
   doc.rect(0, 0, pageWidth, 40, 'F');
   
   doc.setTextColor(255, 255, 255);

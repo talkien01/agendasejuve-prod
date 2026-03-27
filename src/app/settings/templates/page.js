@@ -22,6 +22,7 @@ export default function TemplatesPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [servicesData, setServicesData] = useState([]);
+  const [showArchived, setShowArchived] = useState(false);
 
   // Form State
   const [name, setName] = useState('');
@@ -46,9 +47,10 @@ export default function TemplatesPage() {
     }
   };
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = async (includeArchived = false) => {
     try {
-      const res = await fetch('/api/settings/templates');
+      const url = includeArchived ? '/api/settings/templates?all=true' : '/api/settings/templates';
+      const res = await fetch(url);
       const data = await res.json();
       setTemplates(data);
     } catch (error) {
@@ -115,6 +117,26 @@ export default function TemplatesPage() {
     }
   };
 
+  const handleToggleArchive = () => {
+    const next = !showArchived;
+    setShowArchived(next);
+    fetchTemplates(next);
+  };
+
+  const handleRestore = async (id) => {
+    try {
+      const res = await fetch(`/api/settings/templates?id=${id}`, { method: 'PATCH' });
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Plantilla restaurada correctamente.' });
+        fetchTemplates(showArchived);
+      } else {
+        throw new Error('Error al restaurar la plantilla');
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message });
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!confirm('¿Estás seguro de que deseas archivar esta plantilla? No se borrarán los expedientes antiguos pero no podrá usarse para nuevos.')) return;
     
@@ -122,7 +144,7 @@ export default function TemplatesPage() {
       const res = await fetch(`/api/settings/templates?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         setMessage({ type: 'success', text: 'Plantilla archivada.' });
-        fetchTemplates();
+        fetchTemplates(showArchived);
       } else {
         throw new Error('Error al archivar la plantilla');
       }
@@ -170,9 +192,18 @@ export default function TemplatesPage() {
           </p>
         </div>
         {!showForm && (
-          <button className="btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>
-            <Plus size={18} /> Nueva Plantilla
-          </button>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button
+              className="btn-outline"
+              onClick={handleToggleArchive}
+              style={{ fontSize: '13px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #ddd6fe', color: showArchived ? '#7c3aed' : '#5b5376', background: showArchived ? '#ede9fe' : 'white', cursor: 'pointer' }}
+            >
+              {showArchived ? '📂 Ver activas' : '🗄️ Ver archivadas'}
+            </button>
+            <button className="btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>
+              <Plus size={18} /> Nueva Plantilla
+            </button>
+          </div>
         )}
       </div>
 
@@ -351,12 +382,23 @@ export default function TemplatesPage() {
                     <td><span className="text-muted">{t.description || '-'}</span></td>
                     <td><span className="badge-gray">{t.fields.length} campos</span></td>
                     <td>{new Date(t.createdAt).toLocaleDateString()}</td>
-                    <td className="actions-cell">
-                      <button className="btn-outline-small" onClick={() => handleEdit(t)}>Editar</button>
-                      <button className="btn-icon-danger" onClick={() => handleDelete(t.id)} title="Archivar">
-                        <Trash2 size={16} />
+                  <td className="actions-cell">
+                    {t.isActive ? (
+                      <>
+                        <button className="btn-outline-small" onClick={() => handleEdit(t)}>Editar</button>
+                        <button className="btn-icon-danger" onClick={() => handleDelete(t.id)} title="Archivar">
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => handleRestore(t.id)}
+                        style={{ background: '#ede9fe', color: '#7c3aed', border: '1px solid #ddd6fe', borderRadius: '6px', padding: '4px 12px', fontSize: '13px', cursor: 'pointer' }}
+                      >
+                        Restaurar
                       </button>
-                    </td>
+                    )}
+                  </td>
                   </tr>
                 ))}
               </tbody>
@@ -465,9 +507,9 @@ export default function TemplatesPage() {
         }
 
         .btn-add-field:hover {
-          border-color: #9d00ff;
-          color: #9d00ff;
-          background: #f0fbff;
+          border-color: #7c3aed;
+          color: #7c3aed;
+          background: #f5f3ff;
           transform: translateX(4px);
         }
 
