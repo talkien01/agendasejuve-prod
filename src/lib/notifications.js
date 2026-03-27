@@ -16,7 +16,31 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendNotification({ type, recipient, content, appointmentId, title = 'Notificación' }) {
+/**
+ * Centrally fetch a template from the Config table
+ */
+async function getTemplate(key, defaultText) {
+  try {
+    const config = await prisma.config.findUnique({ where: { key } });
+    return config ? config.value : defaultText;
+  } catch (error) {
+    return defaultText;
+  }
+}
+
+/**
+ * Replace placeholders in a template string
+ */
+function parseTemplate(template, data) {
+  let result = template;
+  Object.keys(data).forEach(key => {
+    const regex = new RegExp(`{{${key}}}`, 'g');
+    result = result.replace(regex, data[key]);
+  });
+  return result;
+}
+
+export async function sendNotification({ type, recipient, content, appointmentId, title = 'Notificación', buttons = [] }) {
   let status = 'PENDING';
   let errorMsg = null;
 
@@ -26,24 +50,37 @@ export async function sendNotification({ type, recipient, content, appointmentId
         throw new Error('EvolutionAPI configuration missing');
       }
 
-      // Ensure URL doesn't have trailing slash
       const baseUrl = evolutionApiUrl.endsWith('/') ? evolutionApiUrl.slice(0, -1) : evolutionApiUrl;
       
       let cleanPhone = recipient.replace(/\D/g, '');
-      if (cleanPhone.length === 10) {
-        cleanPhone = `52${cleanPhone}`;
-      }
+      if (cleanPhone.length === 10) cleanPhone = `52${cleanPhone}`;
       
-      const response = await fetch(`${baseUrl}/message/sendText/${evolutionInstance}`, {
+      let endpoint = `${baseUrl}/message/sendText/${evolutionInstance}`;
+      let body = { number: cleanPhone, text: content };
+
+      // Support for Buttons (EvolutionAPI v2)
+      if (buttons && buttons.length > 0) {
+        endpoint = `${baseUrl}/message/sendButtons/${evolutionInstance}`;
+        body = {
+          number: cleanPhone,
+          title: title,
+          description: content,
+          footer: 'SEJUVE Citas',
+          buttons: buttons.map((btn, index) => ({
+            buttonId: btn.id || `btn-${index}`,
+            buttonText: { displayText: btn.text },
+            type: 1 // Reply Button
+          }))
+        };
+      }
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': evolutionApiKey
         },
-        body: JSON.stringify({
-          number: cleanPhone,
-          text: content
-        })
+        body: JSON.stringify(body)
       });
 
       if (!response.ok) {
@@ -52,20 +89,18 @@ export async function sendNotification({ type, recipient, content, appointmentId
       }
       status = 'SENT';
     } else if (type === 'EMAIL') {
-      if (!emailUser || !emailPass) {
-        throw new Error('Gmail configuration missing');
-      }
+      if (!emailUser || !emailPass) throw new Error('Gmail configuration missing');
 
       await transporter.sendMail({
         from: `"SEJUVE Citas" <${emailUser}>`,
         to: recipient,
         subject: `${title} - SEJUVE`,
         text: content,
-        html: `<div style="font-family: inherit; padding: 20px; border-radius: 12px; border: 1px solid #eee;">
-          <h2 style="color: #9d00ff;">${title}</h2>
-          <p>${content.replace(/\n/g, '<br>')}</p>
+        html: `<div style="font-family: sans-serif; padding: 20px; border-radius: 12px; border: 1px solid #eee;">
+          <h2 style="color: #7c3aed;">${title}</h2>
+          <p style="white-space: pre-wrap;">${content}</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <small style="color: #666;">Este es un mensaje automático, por favor no responda.</small>
+          <small style="color: #666;">Este es un mensaje automático del sistema de citas SEJUVE.</small>
         </div>`
       });
       status = 'SENT';
@@ -79,14 +114,7 @@ export async function sendNotification({ type, recipient, content, appointmentId
   // Log to database
   try {
     await prisma.notification.create({
-      data: {
-        type,
-        recipient,
-        content,
-        status,
-        error: errorMsg,
-        appointmentId
-      }
+      data: { type, recipient, content, status, error: errorMsg, appointmentId }
     });
   } catch (logError) {
     console.error('Failed to log notification to DB:', logError);
@@ -98,38 +126,38 @@ export async function sendNotification({ type, recipient, content, appointmentId
 export async function sendAppointmentConfirmation(appointmentId) {
   const app = await prisma.appointment.findUnique({
     where: { id: appointmentId },
-    include: {
-      patient: true,
-      service: true,
-      resource: true,
-      professional: true,
-      local: true
-    }
+    include: { patient: true, service: true, resource: true, professional: true, local: true }
   });
 
   if (!app || !app.patient) return;
 
   const dateStr = new Date(app.date).toLocaleDateString('es-MX', { 
-    timeZone: 'America/Mexico_City',
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+    timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long' 
   });
   
   const place = app.resource?.name || app.professional?.name || 'SEJUVE';
-  const localName = app.local?.name || 'SEJUVE';
-
-  const message = `¡Hola ${app.patient.name}! 👋\n\nTu cita ha sido confirmada:\n📅 Fecha: ${dateStr}\n⏰ Hora: ${app.startTime}\n📍 Lugar: ${place} (${localName})\n\nTe esperamos. Si necesitas cancelar, por favor avísanos con tiempo.`;
+  const template = await getTemplate('ntfy_confirmation_msg', 'Tu cita ha sido confirmada para el {{date}} a las {{time}} en {{place}}.');
+  const message = parseTemplate(template, {
+    patientName: app.patient.name,
+    date: dateStr,
+    time: app.startTime,
+    place: place
+  });
 
   const results = [];
-  
+  const waButtons = [
+    { id: 'confirm', text: 'Confirmar Asistencia' },
+    { id: 'reschedule', text: 'Reagendar' }
+  ];
+
   if (app.patient.notifyWhatsapp && app.patient.phone) {
     results.push(await sendNotification({
       type: 'WHATSAPP',
       recipient: app.patient.phone,
       content: message,
-      appointmentId
+      appointmentId,
+      title: 'Confirmación de Cita',
+      buttons: waButtons
     }));
   }
 
@@ -146,39 +174,37 @@ export async function sendAppointmentConfirmation(appointmentId) {
   return results;
 }
 
-/**
- * Envía un recordatorio de cita (usualmente 24h antes)
- */
 export async function sendAppointmentReminder(appointment) {
-  const patient = appointment.patient || appointment.patent;
-  const { date, startTime, professional, service } = appointment;
-  
+  const patient = appointment.patient;
   if (!patient) return { status: 'ERROR', error: 'No patient data' };
 
-  const dateStr = new Date(date).toLocaleDateString('es-MX', { 
-    timeZone: 'America/Mexico_City',
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long' 
+  const dateStr = new Date(appointment.date).toLocaleDateString('es-MX', { 
+    timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long' 
   });
   
   const place = appointment.resource?.name || appointment.professional?.name || 'SEJUVE';
+  const template = await getTemplate('ntfy_reminder_msg', 'Recordatorio de tu cita para mañana {{date}} a las {{time}}.');
+  const content = parseTemplate(template, {
+    patientName: patient.name,
+    date: dateStr,
+    time: appointment.startTime,
+    place: place
+  });
 
-  const content = `¡Hola ${patient.name}! 👋\n\nSolo pasamos a recordarte tu cita para mañana:\n📅 Fecha: ${dateStr}\n⏰ Hora: ${startTime}\n📍 Lugar: ${place}\n\n¡Te esperamos!`;
-
+  const waButtons = [{ id: 'confirm', text: 'Confirmar' }, { id: 'cancel', text: 'Cancelar' }];
   const results = [];
 
-  // WhatsApp Reminder
   if (patient.notifyWhatsapp && patient.phone) {
     results.push(await sendNotification({
       type: 'WHATSAPP',
       recipient: patient.phone,
       content,
-      appointmentId: appointment.id
+      appointmentId: appointment.id,
+      title: 'Recordatorio',
+      buttons: waButtons
     }));
   }
 
-  // Email Reminder
   if (patient.notifyEmail && patient.email) {
     results.push(await sendNotification({
       type: 'EMAIL',
@@ -192,6 +218,49 @@ export async function sendAppointmentReminder(appointment) {
   return results;
 }
 
+export async function sendAppointmentFollowUp(appointmentId, isNoShow = false) {
+  const app = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { patient: true }
+  });
+
+  if (!app || !app.patient) return;
+
+  const configKey = isNoShow ? 'ntfy_noshow_msg' : 'ntfy_thankyou_msg';
+  const defaultText = isNoShow ? 'Te extrañamos hoy.' : 'Gracias por asistir.';
+  const template = await getTemplate(configKey, defaultText);
+
+  const message = parseTemplate(template, {
+    patientName: app.patient.name,
+    link: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/reservar`
+  });
+
+  const results = [];
+  if (app.patient.notifyWhatsapp && app.patient.phone) {
+    const waButtons = isNoShow ? [{ id: 'reschedule', text: 'Reagendar Cita' }] : [];
+    results.push(await sendNotification({
+      type: 'WHATSAPP',
+      recipient: app.patient.phone,
+      content: message,
+      appointmentId,
+      title: isNoShow ? 'Te extrañamos' : 'Gracias por tu visita',
+      buttons: waButtons
+    }));
+  }
+
+  if (app.patient.notifyEmail && app.patient.email) {
+    results.push(await sendNotification({
+      type: 'EMAIL',
+      recipient: app.patient.email,
+      content: message,
+      appointmentId,
+      title: isNoShow ? 'Te extrañamos' : 'Gracias por tu visita'
+    }));
+  }
+
+  return results;
+}
+
 export async function sendAppointmentUpdate(appointmentId) {
   const app = await prisma.appointment.findUnique({
     where: { id: appointmentId },
@@ -199,11 +268,9 @@ export async function sendAppointmentUpdate(appointmentId) {
   });
   if (!app || !app.patient) return;
   
-  const dateStr = new Date(app.date).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dateStr = new Date(app.date).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long' });
   const place = app.resource?.name || app.professional?.name || 'SEJUVE';
-  const localName = app.local?.name || 'SEJUVE';
-  
-  const message = `¡Hola ${app.patient.name}! 👋\n\nTu cita ha sido ACTUALIZADA:\n📅 Fecha: ${dateStr}\n⏰ Hora: ${app.startTime}\n📍 Lugar: ${place} (${localName})\n\nCualquier duda, contáctanos.`;
+  const message = `¡Hola ${app.patient.name}! 👋\n\nTu cita ha sido ACTUALIZADA:\n📅 Fecha: ${dateStr}\n⏰ Hora: ${app.startTime}\n📍 Lugar: ${place}\n\nCualquier duda, contáctanos.`;
   
   const results = [];
   if (app.patient.notifyWhatsapp && app.patient.phone) {
@@ -217,8 +284,7 @@ export async function sendAppointmentUpdate(appointmentId) {
 
 export async function sendAppointmentCancellation(app) {
   if (!app || !app.patient) return;
-  
-  const dateStr = new Date(app.date).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dateStr = new Date(app.date).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long' });
   const message = `¡Hola ${app.patient.name}!\n\nTe informamos que tu cita programada para el ${dateStr} a las ${app.startTime} ha sido CANCELADA.\n\nSi necesitas reprogramar, por favor contáctanos.`;
   
   const results = [];

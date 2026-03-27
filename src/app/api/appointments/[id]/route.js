@@ -2,7 +2,11 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { sendAppointmentUpdate, sendAppointmentCancellation } from '@/lib/notifications';
+import { 
+  sendAppointmentUpdate, 
+  sendAppointmentCancellation,
+  sendAppointmentFollowUp 
+} from '@/lib/notifications';
 
 export async function GET(request, props) {
   try {
@@ -27,9 +31,9 @@ export async function PATCH(request, props) {
     const params = await props.params;
     const body = await request.json();
     const id = params.id;
-    console.log(`PATCH /api/appointments/${id} Body:`, body);
-
-    if (!id) return NextResponse.json({ error: 'Missing appointment ID' }, { status: 400 });
+    
+    const oldAppointment = await prisma.appointment.findUnique({ where: { id } });
+    if (!oldAppointment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     let updatedDate = undefined;
     if (body.date) {
@@ -55,7 +59,6 @@ export async function PATCH(request, props) {
       localId: body.localId || null,
     };
 
-    // Remove undefined values to avoid Prisma errors if any field is not in the request
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
     const appointment = await prisma.appointment.update({
@@ -64,7 +67,16 @@ export async function PATCH(request, props) {
       include: { patient: true, resource: true, professional: true },
     });
 
-    if (body.notifyPatient) {
+    // logic for follow-ups
+    if (body.status && body.status !== oldAppointment.status) {
+      if (body.status === 'ASISTIDA') {
+        sendAppointmentFollowUp(id, false).catch(e => console.error("Follow-up error:", e));
+      } else if (body.status === 'CANCELADA') {
+        sendAppointmentFollowUp(id, true).catch(e => console.error("No-show error:", e));
+      }
+    }
+
+    if (body.notifyPatient && body.status !== 'CANCELADA' && body.status !== 'ASISTIDA') {
       await sendAppointmentUpdate(id).catch(e => console.error("Notification error on UPDATE:", e));
     }
 
