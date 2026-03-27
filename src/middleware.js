@@ -16,8 +16,6 @@ export async function middleware(request) {
     pathname.startsWith('/api/diag') ||
     pathname.startsWith('/api/debug-templates') ||
     pathname.startsWith('/api/investigate') ||
-    pathname.startsWith('/api/jobs') ||
-    pathname.startsWith('/api/reservar') ||
     pathname.startsWith('/api/seed') ||
     pathname.startsWith('/_next') ||
     pathname.match(/\.(png|jpg|jpeg|svg|webp|gif|ico)$/i)

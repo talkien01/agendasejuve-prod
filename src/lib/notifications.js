@@ -51,11 +51,9 @@ export async function sendNotification({ type, recipient, content, appointmentId
       }
 
       const baseUrl = evolutionApiUrl.endsWith('/') ? evolutionApiUrl.slice(0, -1) : evolutionApiUrl;
-      
       let cleanPhone = recipient.replace(/\D/g, '');
       if (cleanPhone.length === 10) cleanPhone = `52${cleanPhone}`;
       
-      // Standard Text Message for maximum compatibility
       const response = await fetch(`${baseUrl}/message/sendText/${evolutionInstance}`, {
         method: 'POST',
         headers: {
